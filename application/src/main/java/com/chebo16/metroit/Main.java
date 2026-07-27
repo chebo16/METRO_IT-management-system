@@ -9,7 +9,10 @@ import com.chebo16.metroit.model.enums.IncidentPriority;
 import com.chebo16.metroit.model.enums.IncidentStatus;
 import com.chebo16.metroit.model.enums.MaintenanceResult;
 import com.chebo16.metroit.model.enums.UserRole;
+import com.chebo16.metroit.util.DatabaseConnection;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 
 public class Main {
@@ -80,6 +83,7 @@ public class Main {
         }
 
         // Simulating the start of work on the incident
+
         incident.setStatus(IncidentStatus.IN_PROGRESS);
         incident.setStartedAt(LocalDateTime.now());
 
@@ -97,7 +101,7 @@ public class Main {
         maintenanceRecord.setId(1L);
         maintenanceRecord.setPerformedAt(LocalDateTime.now());
 
-        // Output
+        // Model test output
 
         System.out.println("User:");
         System.out.println(admin);
@@ -114,5 +118,53 @@ public class Main {
         System.out.println(
                 "\nAll Java models and enums work correctly."
         );
+
+        // MySQL connection test
+
+        System.out.println();
+        System.out.println("Testing connection to MySQL...");
+
+        try (Connection connection =
+                     DatabaseConnection.getConnection()) {
+
+            System.out.println("Database connection successful.");
+            System.out.println(
+                    "Connected database: " + connection.getCatalog()
+            );
+            System.out.println(
+                    "Connection valid: " + connection.isValid(2)
+            );
+
+        } catch (SQLException exception) {
+
+            System.err.println("Database connection failed.");
+            System.err.println(
+                    "SQL error code: " + exception.getErrorCode()
+            );
+            System.err.println(
+                    "SQL state: " + exception.getSQLState()
+            );
+            System.err.println(
+                    "Reason: " + exception.getMessage()
+            );
+
+        } catch (ExceptionInInitializerError error) {
+
+            System.err.println(
+                    "Database configuration initialization failed."
+            );
+
+            Throwable cause = error.getCause();
+
+            if (cause != null) {
+                System.err.println(
+                        "Reason: " + cause.getMessage()
+                );
+            } else {
+                System.err.println(
+                        "Reason: " + error.getMessage()
+                );
+            }
+        }
     }
 }
