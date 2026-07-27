@@ -1,0 +1,4 @@
+db.url=jdbc:mysql://localhost:3306/metro_it?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+db.username=YOUR_DATABASE_USERNAME
+db.password=YOUR_DATABASE_PASSWORD
+db.driver=com.mysql.cj.jdbc.Driver
