@@ -5,9 +5,12 @@ import com.chebo16.metroit.exception.ServiceException;
 import com.chebo16.metroit.exception.ValidationException;
 import com.chebo16.metroit.model.Equipment;
 import com.chebo16.metroit.model.Incident;
+import com.chebo16.metroit.model.MaintenanceRecord;
 import com.chebo16.metroit.model.User;
+import com.chebo16.metroit.model.enums.UserRole;
 import com.chebo16.metroit.service.EquipmentService;
 import com.chebo16.metroit.service.IncidentService;
+import com.chebo16.metroit.service.MaintenanceRecordService;
 import com.chebo16.metroit.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -17,6 +20,9 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.Serial;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 @WebServlet(
         name = "IncidentDetailsServlet",
@@ -40,6 +46,9 @@ public final class IncidentDetailsServlet
     private final UserService userService =
             new UserService();
 
+    private final MaintenanceRecordService maintenanceRecordService =
+            new MaintenanceRecordService();
+
     @Override
     protected void doGet(
             HttpServletRequest request,
@@ -47,9 +56,12 @@ public final class IncidentDetailsServlet
     ) throws ServletException, IOException {
 
         try {
+
             long incidentId =
                     parseIncidentId(
-                            request.getParameter("id")
+                            request.getParameter(
+                                    "id"
+                            )
                     );
 
             Incident incident =
@@ -72,6 +84,14 @@ public final class IncidentDetailsServlet
                             incident
                     );
 
+            List<User> availableTechnicians =
+                    loadAvailableTechnicians();
+
+            List<MaintenanceRecord> maintenanceRecords =
+                    maintenanceRecordService.getRecordsByIncident(
+                            incidentId
+                    );
+
             request.setAttribute(
                     "incident",
                     incident
@@ -90,6 +110,16 @@ public final class IncidentDetailsServlet
             request.setAttribute(
                     "assignedTechnician",
                     assignedTechnician
+            );
+
+            request.setAttribute(
+                    "availableTechnicians",
+                    availableTechnicians
+            );
+
+            request.setAttribute(
+                    "maintenanceRecords",
+                    maintenanceRecords
             );
 
             request.getRequestDispatcher(
@@ -143,6 +173,42 @@ public final class IncidentDetailsServlet
         );
     }
 
+    private List<User> loadAvailableTechnicians() {
+
+        List<User> allUsers =
+                userService.getAllUsers();
+
+        List<User> technicians =
+                new ArrayList<>();
+
+        for (User user : allUsers) {
+
+            boolean technicianRole =
+                    user.getRole()
+                            == UserRole.TECHNICIAN;
+
+            boolean activeAccount =
+                    user.isActive();
+
+            if (technicianRole
+                    && activeAccount) {
+
+                technicians.add(
+                        user
+                );
+            }
+        }
+
+        technicians.sort(
+                Comparator.comparing(
+                        User::getFullName,
+                        String.CASE_INSENSITIVE_ORDER
+                )
+        );
+
+        return technicians;
+    }
+
     private long parseIncidentId(
             String incidentIdValue
     ) {
@@ -156,6 +222,7 @@ public final class IncidentDetailsServlet
         }
 
         try {
+
             long incidentId =
                     Long.parseLong(
                             incidentIdValue.trim()
