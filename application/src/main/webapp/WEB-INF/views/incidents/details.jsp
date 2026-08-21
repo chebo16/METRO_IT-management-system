@@ -11,7 +11,9 @@
 <%@ page import="com.chebo16.metroit.model.MaintenanceRecord" %>
 <%@ page import="com.chebo16.metroit.model.User" %>
 
+<%@ page import="com.chebo16.metroit.model.enums.IncidentPriority" %>
 <%@ page import="com.chebo16.metroit.model.enums.IncidentStatus" %>
+<%@ page import="com.chebo16.metroit.model.enums.MaintenanceResult" %>
 
 <%@ page import="com.chebo16.metroit.web.session.SessionConstants" %>
 <%@ page import="com.chebo16.metroit.web.session.SessionUser" %>
@@ -64,6 +66,83 @@
                 value.toString()
                         .replace('_', ' ')
         );
+    }
+
+    private static String getStatusCssClass(
+            IncidentStatus status
+    ) {
+
+        if (status == null) {
+            return "status-inactive";
+        }
+
+        if (status == IncidentStatus.NEW) {
+            return "status-new";
+        }
+
+        if (status == IncidentStatus.IN_PROGRESS) {
+            return "status-in-progress";
+        }
+
+        if (status == IncidentStatus.RESOLVED) {
+            return "status-resolved";
+        }
+
+        if (status == IncidentStatus.CLOSED) {
+            return "status-closed";
+        }
+
+        return "status-inactive";
+    }
+
+    private static String getPriorityCssClass(
+            IncidentPriority priority
+    ) {
+
+        if (priority == null) {
+            return "priority-medium";
+        }
+
+        if (priority == IncidentPriority.LOW) {
+            return "priority-low";
+        }
+
+        if (priority == IncidentPriority.MEDIUM) {
+            return "priority-medium";
+        }
+
+        if (priority == IncidentPriority.HIGH) {
+            return "priority-high";
+        }
+
+        if (priority == IncidentPriority.CRITICAL) {
+            return "priority-critical";
+        }
+
+        return "priority-medium";
+    }
+
+    private static String maintenanceResultClass(
+            MaintenanceResult result
+    ) {
+
+        if (result == null) {
+            return "maintenance-result-unknown";
+        }
+
+        if (result == MaintenanceResult.SUCCESS) {
+            return "maintenance-result-success";
+        }
+
+        if (result == MaintenanceResult.PARTIALLY_COMPLETED) {
+            return "maintenance-result-partial";
+        }
+
+        if (result == MaintenanceResult.FAILED) {
+            return "maintenance-result-failed";
+        }
+
+        return "maintenance-result-unknown";
     }
 %>
 
@@ -188,7 +267,8 @@
     if (!administrator
             && sessionUser != null
             && incident != null
-            && incident.getAssignedTechnicianId() != null) {
+            && incident.getAssignedTechnicianId()
+            != null) {
 
         technicianOwnsIncident =
                 incident.getAssignedTechnicianId()
@@ -196,13 +276,21 @@
                         == sessionUser.getId();
     }
 
+    /*
+     * Maintenance records may be added only while
+     * the assigned technician is actively working
+     * on the incident.
+     *
+     * NEW         -> not allowed
+     * IN_PROGRESS -> allowed
+     * RESOLVED    -> not allowed
+     * CLOSED      -> not allowed
+     */
     boolean maintenanceCanBeAdded =
             technicianOwnsIncident
                     && incident != null
                     && incident.getStatus()
-                    != IncidentStatus.NEW
-                    && incident.getStatus()
-                    != IncidentStatus.CLOSED;
+                    == IncidentStatus.IN_PROGRESS;
 
     String success =
             request.getParameter(
@@ -235,7 +323,11 @@
 <header>
 
     <h1>
-        METRO IT Management
+
+        <a href="<%= contextPath %>/">
+            METRO IT Management
+        </a>
+
     </h1>
 
     <% if (sessionUser != null) { %>
@@ -266,15 +358,11 @@
             Dashboard
         </a>
 
-        |
-
         <% if (administrator) { %>
 
         <a href="<%= contextPath %>/admin/users">
             Users
         </a>
-
-        |
 
         <% } %>
 
@@ -282,13 +370,9 @@
             Equipment
         </a>
 
-        |
-
         <a href="<%= contextPath %>/incidents">
             Incidents
         </a>
-
-        |
 
         <% if (!administrator) { %>
 
@@ -296,22 +380,21 @@
             My incidents
         </a>
 
-        |
-
         <% } %>
 
         <a href="<%= contextPath %>/maintenance">
             Maintenance
         </a>
 
-        |
-
         <form method="post"
               action="<%= contextPath %>/logout"
-              style="display: inline;">
+              class="inline-form">
 
-            <button type="submit">
+            <button type="submit"
+                    class="button button-secondary">
+
                 Sign out
+
             </button>
 
         </form>
@@ -324,854 +407,1137 @@
 
 <main>
 
+    <%@ include file="/WEB-INF/views/common/navigation.jspf" %>
+
     <% if (incident == null) { %>
 
-    <h2>
-        Incident not available
-    </h2>
+    <div class="empty-state">
 
-    <p>
-        Incident information could not be loaded.
-    </p>
+        <h2>
+            Incident not available
+        </h2>
+
+        <p>
+            Incident information could not be loaded.
+        </p>
+
+        <a href="<%= contextPath %>/incidents"
+           class="button button-secondary">
+
+            Back to incidents
+
+        </a>
+
+    </div>
 
     <% } else { %>
 
-    <h2>
-        Incident #<%= incident.getId() %>
-    </h2>
+    <div class="page-header">
 
-    <h3>
-        <%= escapeHtml(
-                incident.getTitle()
-        ) %>
-    </h3>
+        <div>
+
+            <h2>
+                Incident #<%= incident.getId() %>
+            </h2>
+
+            <p>
+
+                <strong>
+
+                    <%= escapeHtml(
+                            incident.getTitle()
+                    ) %>
+
+                </strong>
+
+            </p>
+
+        </div>
+
+        <div class="form-actions">
+
+            <a href="<%= contextPath %>/incidents"
+               class="button button-secondary">
+
+                Back to incidents
+
+            </a>
+
+            <% if (!administrator) { %>
+
+            <a href="<%= contextPath %>/incidents/my"
+               class="button button-secondary">
+
+                My incidents
+
+            </a>
+
+            <% } %>
+
+        </div>
+
+    </div>
 
     <% if ("assigned".equals(success)) { %>
 
-    <p>
-        <strong>
-            Technician was assigned successfully.
-        </strong>
-    </p>
+    <div class="success-message"
+         role="status">
+
+        Technician was assigned successfully.
+
+    </div>
 
     <% } %>
 
     <% if ("status-updated".equals(success)) { %>
 
-    <p>
-        <strong>
-            Incident status was updated successfully.
-        </strong>
-    </p>
+    <div class="success-message"
+         role="status">
+
+        Incident status was updated successfully.
+
+    </div>
 
     <% } %>
 
     <% if ("maintenance-created".equals(success)) { %>
 
-    <p>
-        <strong>
-            Maintenance record was created successfully.
-        </strong>
-    </p>
+    <div class="success-message"
+         role="status">
+
+        Maintenance record was created successfully.
+
+    </div>
 
     <% } %>
 
-    <p>
+    <section class="statistics-grid"
+             aria-label="Incident summary">
 
-        <strong>
-            Priority:
-        </strong>
+        <article class="statistics-card">
 
-        <%= formatEnum(
-                incident.getPriority()
-        ) %>
+            <span class="statistics-label">
+                Priority
+            </span>
 
-    </p>
+            <strong>
 
-    <p>
+                <span class="priority-badge
+                        <%= getPriorityCssClass(
+                                incident.getPriority()
+                        ) %>">
 
-        <strong>
-            Status:
-        </strong>
+                    <%= formatEnum(
+                            incident.getPriority()
+                    ) %>
 
-        <%= formatEnum(
-                incident.getStatus()
-        ) %>
+                </span>
 
-    </p>
+            </strong>
 
-    <p>
+        </article>
 
-        <strong>
-            Created:
-        </strong>
+        <article class="statistics-card">
 
-        <%= displayValue(
-                incident.getCreatedAt(),
-                "Not available"
-        ) %>
+            <span class="statistics-label">
+                Status
+            </span>
 
-    </p>
+            <strong>
 
-    <p>
+                <span class="status-badge
+                        <%= getStatusCssClass(
+                                incident.getStatus()
+                        ) %>">
 
-        <strong>
-            Technician:
-        </strong>
+                    <%= formatEnum(
+                            incident.getStatus()
+                    ) %>
 
-        <% if (assignedTechnician != null) { %>
+                </span>
 
-        <%= escapeHtml(
-                assignedTechnician.getFullName()
-        ) %>
+            </strong>
+
+        </article>
+
+        <article class="statistics-card">
+
+            <span class="statistics-label">
+                Created
+            </span>
+
+            <strong>
+
+                <%= displayValue(
+                        incident.getCreatedAt(),
+                        "Not available"
+                ) %>
+
+            </strong>
+
+        </article>
+
+        <article class="statistics-card">
+
+            <span class="statistics-label">
+                Technician
+            </span>
+
+            <strong>
+
+                <% if (assignedTechnician != null) { %>
+
+                <%= escapeHtml(
+                        assignedTechnician.getFullName()
+                ) %>
+
+                <% } else { %>
+
+                Not assigned
+
+                <% } %>
+
+            </strong>
+
+        </article>
+
+    </section>
+
+    <section class="content-card"
+             aria-labelledby="incident-information-title">
+
+        <div class="content-card-header">
+
+            <h2 id="incident-information-title">
+                Incident information
+            </h2>
+
+        </div>
+
+        <dl>
+
+            <dt>
+                ID
+            </dt>
+
+            <dd>
+                #<%= incident.getId() %>
+            </dd>
+
+            <dt>
+                Title
+            </dt>
+
+            <dd>
+
+                <%= escapeHtml(
+                        incident.getTitle()
+                ) %>
+
+            </dd>
+
+            <dt>
+                Priority
+            </dt>
+
+            <dd>
+
+                <span class="priority-badge
+                        <%= getPriorityCssClass(
+                                incident.getPriority()
+                        ) %>">
+
+                    <%= formatEnum(
+                            incident.getPriority()
+                    ) %>
+
+                </span>
+
+            </dd>
+
+            <dt>
+                Status
+            </dt>
+
+            <dd>
+
+                <span class="status-badge
+                        <%= getStatusCssClass(
+                                incident.getStatus()
+                        ) %>">
+
+                    <%= formatEnum(
+                            incident.getStatus()
+                    ) %>
+
+                </span>
+
+            </dd>
+
+            <dt>
+                Description
+            </dt>
+
+            <dd>
+
+                <%= displayValue(
+                        incident.getDescription(),
+                        "Not available"
+                ) %>
+
+            </dd>
+
+        </dl>
+
+    </section>
+
+    <section class="content-card"
+             aria-labelledby="affected-equipment-title">
+
+        <div class="content-card-header">
+
+            <h2 id="affected-equipment-title">
+                Affected equipment
+            </h2>
+
+        </div>
+
+        <% if (equipment != null) { %>
+
+        <dl>
+
+            <dt>
+                Inventory number
+            </dt>
+
+            <dd>
+
+                <%= displayValue(
+                        equipment.getInventoryNumber(),
+                        "Not available"
+                ) %>
+
+            </dd>
+
+            <dt>
+                Equipment name
+            </dt>
+
+            <dd>
+
+                <%= displayValue(
+                        equipment.getName(),
+                        "Not available"
+                ) %>
+
+            </dd>
+
+            <dt>
+                Type
+            </dt>
+
+            <dd>
+
+                <%= displayValue(
+                        equipment.getType(),
+                        "Not available"
+                ) %>
+
+            </dd>
+
+            <dt>
+                Status
+            </dt>
+
+            <dd>
+
+                <%= formatEnum(
+                        equipment.getStatus()
+                ) %>
+
+            </dd>
+
+            <dt>
+                Manufacturer
+            </dt>
+
+            <dd>
+
+                <%= displayValue(
+                        equipment.getManufacturer(),
+                        "Not available"
+                ) %>
+
+            </dd>
+
+            <dt>
+                Model
+            </dt>
+
+            <dd>
+
+                <%= displayValue(
+                        equipment.getModel(),
+                        "Not available"
+                ) %>
+
+            </dd>
+
+            <dt>
+                Serial number
+            </dt>
+
+            <dd>
+
+                <%= displayValue(
+                        equipment.getSerialNumber(),
+                        "Not available"
+                ) %>
+
+            </dd>
+
+            <dt>
+                IP address
+            </dt>
+
+            <dd>
+
+                <%= displayValue(
+                        equipment.getIpAddress(),
+                        "Not available"
+                ) %>
+
+            </dd>
+
+        </dl>
 
         <% } else { %>
 
-        Not assigned
+        <div class="empty-state">
+
+            <p>
+                Equipment information is not available.
+            </p>
+
+        </div>
 
         <% } %>
 
-    </p>
+    </section>
 
-    <hr>
+    <section class="content-card"
+             aria-labelledby="responsibility-title">
 
-    <h3>
-        Incident information
-    </h3>
+        <div class="content-card-header">
 
-    <p>
+            <h2 id="responsibility-title">
+                Responsibility
+            </h2>
 
-        <strong>
-            ID:
-        </strong>
+        </div>
 
-        <%= incident.getId() %>
+        <dl>
 
-    </p>
+            <dt>
+                Created by
+            </dt>
 
-    <p>
+            <dd>
 
-        <strong>
-            Title:
-        </strong>
+                <% if (createdByUser != null) { %>
 
-        <%= escapeHtml(
-                incident.getTitle()
-        ) %>
+                <%= escapeHtml(
+                        createdByUser.getFullName()
+                ) %> (<%= escapeHtml(
+                    createdByUser.getUsername()
+            ) %>)
 
-    </p>
+                <% } else { %>
 
-    <p>
+                Not available
 
-        <strong>
-            Priority:
-        </strong>
+                <% } %>
 
-        <%= formatEnum(
-                incident.getPriority()
-        ) %>
+            </dd>
 
-    </p>
+            <dt>
+                Assigned technician
+            </dt>
 
-    <p>
+            <dd>
 
-        <strong>
-            Status:
-        </strong>
+                <% if (assignedTechnician != null) { %>
 
-        <%= formatEnum(
-                incident.getStatus()
-        ) %>
+                <%= escapeHtml(
+                        assignedTechnician.getFullName()
+                ) %> (<%= escapeHtml(
+                    assignedTechnician.getUsername()
+            ) %>)
 
-    </p>
+                <% } else { %>
 
-    <p>
+                Not assigned
 
-        <strong>
-            Description:
-        </strong>
+                <% } %>
 
-        <%= escapeHtml(
-                incident.getDescription()
-        ) %>
+            </dd>
 
-    </p>
+        </dl>
 
-    <hr>
-
-    <h3>
-        Affected equipment
-    </h3>
-
-    <% if (equipment != null) { %>
-
-    <p>
-
-        <strong>
-            Inventory number:
-        </strong>
-
-        <%= displayValue(
-                equipment.getInventoryNumber(),
-                "Not available"
-        ) %>
-
-    </p>
-
-    <p>
-
-        <strong>
-            Equipment name:
-        </strong>
-
-        <%= displayValue(
-                equipment.getName(),
-                "Not available"
-        ) %>
-
-    </p>
-
-    <p>
-
-        <strong>
-            Type:
-        </strong>
-
-        <%= displayValue(
-                equipment.getType(),
-                "Not available"
-        ) %>
-
-    </p>
-
-    <p>
-
-        <strong>
-            Status:
-        </strong>
-
-        <%= formatEnum(
-                equipment.getStatus()
-        ) %>
-
-    </p>
-
-    <p>
-
-        <strong>
-            Manufacturer:
-        </strong>
-
-        <%= displayValue(
-                equipment.getManufacturer(),
-                "Not available"
-        ) %>
-
-    </p>
-
-    <p>
-
-        <strong>
-            Model:
-        </strong>
-
-        <%= displayValue(
-                equipment.getModel(),
-                "Not available"
-        ) %>
-
-    </p>
-
-    <p>
-
-        <strong>
-            Serial number:
-        </strong>
-
-        <%= displayValue(
-                equipment.getSerialNumber(),
-                "Not available"
-        ) %>
-
-    </p>
-
-    <p>
-
-        <strong>
-            IP address:
-        </strong>
-
-        <%= displayValue(
-                equipment.getIpAddress(),
-                "Not available"
-        ) %>
-
-    </p>
-
-    <% } else { %>
-
-    <p>
-        Equipment information is not available.
-    </p>
-
-    <% } %>
-
-    <hr>
-
-    <h3>
-        Responsibility
-    </h3>
-
-    <p>
-
-        <strong>
-            Created by:
-        </strong>
-
-        <% if (createdByUser != null) { %>
-
-        <%= escapeHtml(
-                createdByUser.getFullName()
-        ) %>
-
-        (
-        <%= escapeHtml(
-                createdByUser.getUsername()
-        ) %>
-        )
-
-        <% } else { %>
-
-        Not available
-
-        <% } %>
-
-    </p>
-
-    <p>
-
-        <strong>
-            Assigned technician:
-        </strong>
-
-        <% if (assignedTechnician != null) { %>
-
-        <%= escapeHtml(
-                assignedTechnician.getFullName()
-        ) %>
-
-        (
-        <%= escapeHtml(
-                assignedTechnician.getUsername()
-        ) %>
-        )
-
-        <% } else { %>
-
-        Not assigned
-
-        <% } %>
-
-    </p>
+    </section>
 
     <% if (administrator) { %>
 
-    <hr>
+    <section class="content-card"
+             aria-labelledby="assign-technician-title">
 
-    <h3>
-        Assign technician
-    </h3>
+        <div class="content-card-header">
 
-    <% if (incident.getStatus()
-            == IncidentStatus.CLOSED) { %>
+            <div>
 
-    <p>
-        This incident is closed.
-        Technician assignment cannot be changed.
-    </p>
+                <h2 id="assign-technician-title">
+                    Assign technician
+                </h2>
 
-    <% } else if (availableTechnicians.isEmpty()) { %>
+                <span>
+                    Assign or reassign responsibility
+                    for this incident.
+                </span>
 
-    <p>
-        No active technicians are available.
-    </p>
+            </div>
 
-    <% } else { %>
+        </div>
 
-    <p>
-        Assign or reassign an active technician
-        to this incident.
-    </p>
+        <% if (incident.getStatus()
+                == IncidentStatus.RESOLVED) { %>
 
-    <form method="post"
-          action="<%= contextPath %>/admin/incidents/assign">
+        <div class="warning-message">
 
-        <input type="hidden"
-               name="incidentId"
-               value="<%= incident.getId() %>">
+            This incident is resolved.
+            Technician assignment cannot be changed.
 
-        <p>
+        </div>
 
-            <label for="technicianId">
-                Technician:
-            </label>
+        <% } else if (incident.getStatus()
+                == IncidentStatus.CLOSED) { %>
 
-            <select id="technicianId"
-                    name="technicianId"
-                    required>
+        <div class="warning-message">
 
-                <% for (User technician
-                        : availableTechnicians) { %>
+            This incident is closed.
+            Technician assignment cannot be changed.
 
-                <option
-                        value="<%= technician.getId() %>"
-                        <%= incident
-                                .getAssignedTechnicianId()
-                                != null
-                                && incident
-                                .getAssignedTechnicianId()
-                                .equals(
-                                        technician.getId()
-                                )
-                                ? "selected"
-                                : "" %>>
+        </div>
 
-                    <%= escapeHtml(
-                            technician.getFullName()
-                    ) %>
+        <% } else if (availableTechnicians.isEmpty()) { %>
 
-                    -
+        <div class="warning-message">
 
-                    <%= escapeHtml(
-                            technician.getUsername()
-                    ) %>
+            No active technicians are available.
 
-                </option>
+        </div>
 
-                <% } %>
+        <% } else { %>
 
-            </select>
+        <form method="post"
+              action="<%= contextPath %>/admin/incidents/assign">
 
-        </p>
+            <input type="hidden"
+                   name="incidentId"
+                   value="<%= incident.getId() %>">
 
-        <p>
+            <div class="form-grid">
 
-            <button type="submit">
+                <div class="form-group">
 
-                <% if (incident
-                        .getAssignedTechnicianId()
-                        == null) { %>
+                    <label for="technicianId">
+                        Technician
+                    </label>
 
-                Assign technician
+                    <select id="technicianId"
+                            name="technicianId"
+                            required>
 
-                <% } else { %>
+                        <% for (User technician
+                                : availableTechnicians) { %>
 
-                Reassign technician
+                        <option
+                                value="<%= technician.getId() %>"
+                                <%= incident
+                                        .getAssignedTechnicianId()
+                                        != null
+                                        && incident
+                                        .getAssignedTechnicianId()
+                                        .equals(
+                                                technician.getId()
+                                        )
+                                        ? "selected"
+                                        : "" %>>
 
-                <% } %>
+                            <%= escapeHtml(
+                                    technician.getFullName()
+                            ) %>
 
-            </button>
+                            -
 
-        </p>
+                            <%= escapeHtml(
+                                    technician.getUsername()
+                            ) %>
 
-    </form>
+                        </option>
 
-    <% } %>
+                        <% } %>
 
-    <% } %>
+                    </select>
 
-    <hr>
+                    <small class="form-help">
 
-    <h3>
-        Incident status actions
-    </h3>
+                        Only active technicians are
+                        available for assignment.
 
-    <% if (administrator
-            && incident.getStatus()
-            == IncidentStatus.RESOLVED) { %>
+                    </small>
 
-    <p>
-        The incident has been resolved.
-        Close it after reviewing the completed work.
-    </p>
+                </div>
 
-    <form method="post"
-          action="<%= contextPath %>/incidents/status">
+            </div>
 
-        <input type="hidden"
-               name="incidentId"
-               value="<%= incident.getId() %>">
+            <div class="form-actions">
 
-        <input type="hidden"
-               name="status"
-               value="CLOSED">
+                <button type="submit"
+                        class="button button-primary">
 
-        <button type="submit">
-            Close incident
-        </button>
+                    <% if (incident
+                            .getAssignedTechnicianId()
+                            == null) { %>
 
-    </form>
+                    Assign technician
 
-    <% } else if (technicianOwnsIncident
-            && incident.getStatus()
-            == IncidentStatus.NEW) { %>
+                    <% } else { %>
 
-    <p>
-        Work on this incident has not started yet.
-    </p>
+                    Reassign technician
 
-    <form method="post"
-          action="<%= contextPath %>/incidents/status">
+                    <% } %>
 
-        <input type="hidden"
-               name="incidentId"
-               value="<%= incident.getId() %>">
+                </button>
 
-        <input type="hidden"
-               name="status"
-               value="IN_PROGRESS">
+            </div>
 
-        <button type="submit">
-            Start work
-        </button>
-
-    </form>
-
-    <% } else if (technicianOwnsIncident
-            && incident.getStatus()
-            == IncidentStatus.IN_PROGRESS) { %>
-
-    <p>
-        Work is currently in progress.
-        Describe the solution before resolving
-        the incident.
-    </p>
-
-    <form method="post"
-          action="<%= contextPath %>/incidents/status">
-
-        <input type="hidden"
-               name="incidentId"
-               value="<%= incident.getId() %>">
-
-        <input type="hidden"
-               name="status"
-               value="RESOLVED">
-
-        <p>
-
-            <label for="solutionDescription">
-
-                <strong>
-                    Solution description:
-                </strong>
-
-            </label>
-
-        </p>
-
-        <p>
-
-                    <textarea id="solutionDescription"
-                              name="solutionDescription"
-                              rows="6"
-                              cols="80"
-                              required></textarea>
-
-        </p>
-
-        <button type="submit">
-            Resolve incident
-        </button>
-
-    </form>
-
-    <% } else if (technicianOwnsIncident
-            && incident.getStatus()
-            == IncidentStatus.RESOLVED) { %>
-
-    <p>
-        This incident has been resolved
-        and is waiting for administrator closure.
-    </p>
-
-    <% } else if (incident.getStatus()
-            == IncidentStatus.CLOSED) { %>
-
-    <p>
-        This incident is closed.
-    </p>
-
-    <% } else { %>
-
-    <p>
-        No status action is currently available.
-    </p>
-
-    <% } %>
-
-    <% if (maintenanceCanBeAdded) { %>
-
-    <hr>
-
-    <h3>
-        Maintenance action
-    </h3>
-
-    <p>
-        Record diagnostics, repair,
-        configuration or component replacement
-        performed for this incident.
-    </p>
-
-    <p>
-
-        <a href="<%= contextPath %>/maintenance/create?incidentId=<%= incident.getId() %>">
-            Add maintenance record
-        </a>
-
-    </p>
-
-    <% } %>
-
-    <hr>
-
-    <h3>
-        Incident timeline
-    </h3>
-
-    <p>
-
-        <strong>
-            Created at:
-        </strong>
-
-        <%= displayValue(
-                incident.getCreatedAt(),
-                "Not available"
-        ) %>
-
-    </p>
-
-    <p>
-
-        <strong>
-            Started at:
-        </strong>
-
-        <%= displayValue(
-                incident.getStartedAt(),
-                "Not started"
-        ) %>
-
-    </p>
-
-    <p>
-
-        <strong>
-            Resolved at:
-        </strong>
-
-        <%= displayValue(
-                incident.getResolvedAt(),
-                "Not resolved"
-        ) %>
-
-    </p>
-
-    <p>
-
-        <strong>
-            Closed at:
-        </strong>
-
-        <%= displayValue(
-                incident.getClosedAt(),
-                "Not closed"
-        ) %>
-
-    </p>
-
-    <hr>
-
-    <h3>
-        Solution
-    </h3>
-
-    <% if (incident.getSolutionDescription()
-            != null
-            && !incident
-            .getSolutionDescription()
-            .isBlank()) { %>
-
-    <p>
-        <%= escapeHtml(
-                incident.getSolutionDescription()
-        ) %>
-    </p>
-
-    <% } else { %>
-
-    <p>
-        No solution has been recorded yet.
-    </p>
-
-    <% } %>
-
-    <hr>
-
-    <h3>
-        Maintenance history
-    </h3>
-
-    <p>
-        Maintenance activities recorded
-        for this incident:
-        <strong>
-            <%= maintenanceRecords.size() %>
-        </strong>
-    </p>
-
-    <% if (maintenanceRecords.isEmpty()) { %>
-
-    <p>
-        No maintenance work has been recorded
-        for this incident yet.
-    </p>
-
-    <% } else { %>
-
-    <table border="1"
-           cellpadding="8"
-           cellspacing="0">
-
-        <thead>
-
-        <tr>
-
-            <th>
-                ID
-            </th>
-
-            <th>
-                Performed at
-            </th>
-
-            <th>
-                Technician ID
-            </th>
-
-            <th>
-                Work description
-            </th>
-
-            <th>
-                Replaced components
-            </th>
-
-            <th>
-                Result
-            </th>
-
-        </tr>
-
-        </thead>
-
-        <tbody>
-
-        <% for (MaintenanceRecord record
-                : maintenanceRecords) { %>
-
-        <tr>
-
-            <td>
-                #<%= record.getId() %>
-            </td>
-
-            <td>
-                <%= displayValue(
-                        record.getPerformedAt(),
-                        "Not available"
-                ) %>
-            </td>
-
-            <td>
-                #<%= record.getTechnicianId() %>
-            </td>
-
-            <td>
-                <%= displayValue(
-                        record.getWorkDescription(),
-                        "Not available"
-                ) %>
-            </td>
-
-            <td>
-
-                <% if (record
-                        .getReplacedComponents()
-                        != null
-                        && !record
-                        .getReplacedComponents()
-                        .isBlank()) { %>
-
-                <%= escapeHtml(
-                        record.getReplacedComponents()
-                ) %>
-
-                <% } else { %>
-
-                None
-
-                <% } %>
-
-            </td>
-
-            <td>
-                <%= formatEnum(
-                        record.getResult()
-                ) %>
-            </td>
-
-        </tr>
+        </form>
 
         <% } %>
 
-        </tbody>
-
-    </table>
+    </section>
 
     <% } %>
 
-    <p>
+    <section class="content-card"
+             aria-labelledby="status-actions-title">
 
-        <a href="<%= contextPath %>/maintenance">
-            View maintenance history
-        </a>
+        <div class="content-card-header">
 
-    </p>
+            <h2 id="status-actions-title">
+                Incident status actions
+            </h2>
 
-    <hr>
+        </div>
 
-    <p>
+        <% if (administrator
+                && incident.getStatus()
+                == IncidentStatus.RESOLVED) { %>
 
-        <a href="<%= contextPath %>/incidents">
+        <p>
+            The incident has been resolved.
+            Close it after reviewing the completed work.
+        </p>
+
+        <form method="post"
+              action="<%= contextPath %>/incidents/status">
+
+            <input type="hidden"
+                   name="incidentId"
+                   value="<%= incident.getId() %>">
+
+            <input type="hidden"
+                   name="status"
+                   value="CLOSED">
+
+            <div class="form-actions">
+
+                <button type="submit"
+                        class="button button-primary">
+
+                    Close incident
+
+                </button>
+
+            </div>
+
+        </form>
+
+        <% } else if (technicianOwnsIncident
+                && incident.getStatus()
+                == IncidentStatus.NEW) { %>
+
+        <p>
+            Work on this incident has not started yet.
+        </p>
+
+        <form method="post"
+              action="<%= contextPath %>/incidents/status">
+
+            <input type="hidden"
+                   name="incidentId"
+                   value="<%= incident.getId() %>">
+
+            <input type="hidden"
+                   name="status"
+                   value="IN_PROGRESS">
+
+            <div class="form-actions">
+
+                <button type="submit"
+                        class="button button-primary">
+
+                    Start work
+
+                </button>
+
+            </div>
+
+        </form>
+
+        <% } else if (technicianOwnsIncident
+                && incident.getStatus()
+                == IncidentStatus.IN_PROGRESS) { %>
+
+        <p>
+            Work is currently in progress.
+            Describe the solution before resolving
+            the incident.
+        </p>
+
+        <form method="post"
+              action="<%= contextPath %>/incidents/status">
+
+            <input type="hidden"
+                   name="incidentId"
+                   value="<%= incident.getId() %>">
+
+            <input type="hidden"
+                   name="status"
+                   value="RESOLVED">
+
+            <div class="form-group form-group-full">
+
+                <div>
+                    <label for="solutionDescription">
+                        Solution description
+                    </label>
+                </div>
+
+                <textarea id="solutionDescription"
+                          name="solutionDescription"
+                          rows="6"
+                          required
+                          placeholder="Describe the performed work and final solution..."></textarea>
+
+                <small class="form-help">
+
+                    A solution description is required
+                    before resolving the incident.
+
+                </small>
+
+            </div>
+
+            <div class="form-actions">
+
+                <button type="submit"
+                        class="button button-primary">
+
+                    Resolve incident
+
+                </button>
+
+            </div>
+
+        </form>
+
+        <% } else if (technicianOwnsIncident
+                && incident.getStatus()
+                == IncidentStatus.RESOLVED) { %>
+
+        <div class="success-message">
+
+            This incident has been resolved and is
+            waiting for administrator closure.
+
+        </div>
+
+        <% } else if (incident.getStatus()
+                == IncidentStatus.CLOSED) { %>
+
+        <div class="success-message">
+
+            This incident is closed.
+
+        </div>
+
+        <% } else { %>
+
+        <div class="warning-message">
+
+            No status action is currently available.
+
+        </div>
+
+        <% } %>
+
+    </section>
+
+    <% if (maintenanceCanBeAdded) { %>
+
+    <section class="content-card"
+             aria-labelledby="maintenance-action-title">
+
+        <div class="content-card-header">
+
+            <div>
+
+                <h2 id="maintenance-action-title">
+                    Maintenance action
+                </h2>
+
+                <span>
+                    Record work performed for this
+                    incident.
+                </span>
+
+            </div>
+
+        </div>
+
+        <p>
+            Record diagnostics, repair,
+            configuration or component replacement
+            performed for this incident.
+        </p>
+
+        <div class="form-actions">
+
+            <a href="<%= contextPath %>/maintenance/create?incidentId=<%= incident.getId() %>"
+               class="button button-primary">
+
+                Add maintenance record
+
+            </a>
+
+        </div>
+
+    </section>
+
+    <% } %>
+
+    <section class="content-card"
+             aria-labelledby="incident-timeline-title">
+
+        <div class="content-card-header">
+
+            <h2 id="incident-timeline-title">
+                Incident timeline
+            </h2>
+
+        </div>
+
+        <dl>
+
+            <dt>
+                Created at
+            </dt>
+
+            <dd>
+
+                <%= displayValue(
+                        incident.getCreatedAt(),
+                        "Not available"
+                ) %>
+
+            </dd>
+
+            <dt>
+                Started at
+            </dt>
+
+            <dd>
+
+                <%= displayValue(
+                        incident.getStartedAt(),
+                        "Not started"
+                ) %>
+
+            </dd>
+
+            <dt>
+                Resolved at
+            </dt>
+
+            <dd>
+
+                <%= displayValue(
+                        incident.getResolvedAt(),
+                        "Not resolved"
+                ) %>
+
+            </dd>
+
+            <dt>
+                Closed at
+            </dt>
+
+            <dd>
+
+                <%= displayValue(
+                        incident.getClosedAt(),
+                        "Not closed"
+                ) %>
+
+            </dd>
+
+        </dl>
+
+    </section>
+
+    <section class="content-card"
+             aria-labelledby="solution-title">
+
+        <div class="content-card-header">
+
+            <h2 id="solution-title">
+                Solution
+            </h2>
+
+        </div>
+
+        <% if (incident.getSolutionDescription()
+                != null
+                && !incident
+                .getSolutionDescription()
+                .isBlank()) { %>
+
+        <p>
+
+            <%= escapeHtml(
+                    incident.getSolutionDescription()
+            ) %>
+
+        </p>
+
+        <% } else { %>
+
+        <div class="empty-state">
+
+            <p>
+                No solution has been recorded yet.
+            </p>
+
+        </div>
+
+        <% } %>
+
+    </section>
+
+    <section class="content-card"
+             aria-labelledby="maintenance-history-title">
+
+        <div class="content-card-header">
+
+            <div>
+
+                <h2 id="maintenance-history-title">
+                    Maintenance history
+                </h2>
+
+                <span>
+
+                    <%= maintenanceRecords.size() %>
+                    record(s)
+
+                </span>
+
+            </div>
+
+            <a href="<%= contextPath %>/maintenance"
+               class="button button-secondary">
+
+                View maintenance history
+
+            </a>
+
+        </div>
+
+        <% if (maintenanceRecords.isEmpty()) { %>
+
+        <div class="empty-state">
+
+            <h3>
+                No maintenance records
+            </h3>
+
+            <p>
+                No maintenance work has been recorded
+                for this incident yet.
+            </p>
+
+        </div>
+
+        <% } else { %>
+
+        <div class="table-container">
+
+            <table class="data-table">
+
+                <thead>
+
+                <tr>
+
+                    <th scope="col">
+                        ID
+                    </th>
+
+                    <th scope="col">
+                        Performed at
+                    </th>
+
+                    <% if (administrator) { %>
+
+                    <th scope="col">
+                        Technician ID
+                    </th>
+
+                    <% } %>
+
+                    <th scope="col">
+                        Work description
+                    </th>
+
+                    <th scope="col">
+                        Replaced components
+                    </th>
+
+                    <th scope="col">
+                        Result
+                    </th>
+
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                <% for (MaintenanceRecord record
+                        : maintenanceRecords) { %>
+
+                <tr>
+
+                    <td>
+                        #<%= record.getId() %>
+                    </td>
+
+                    <td>
+
+                        <%= displayValue(
+                                record.getPerformedAt(),
+                                "Not available"
+                        ) %>
+
+                    </td>
+
+                    <% if (administrator) { %>
+
+                    <td>
+                        #<%= record.getTechnicianId() %>
+                    </td>
+
+                    <% } %>
+
+                    <td>
+
+                        <%= displayValue(
+                                record.getWorkDescription(),
+                                "Not available"
+                        ) %>
+
+                    </td>
+
+                    <td>
+
+                        <% if (record
+                                .getReplacedComponents()
+                                != null
+                                && !record
+                                .getReplacedComponents()
+                                .isBlank()) { %>
+
+                        <%= escapeHtml(
+                                record.getReplacedComponents()
+                        ) %>
+
+                        <% } else { %>
+
+                        None
+
+                        <% } %>
+
+                    </td>
+
+                    <td>
+
+                        <span class="maintenance-result-badge <%= maintenanceResultClass(
+                                record.getResult()
+                        ) %>">
+
+                            <%= formatEnum(
+                                    record.getResult()
+                            ) %>
+
+                        </span>
+
+                    </td>
+
+                </tr>
+
+                <% } %>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <% } %>
+
+    </section>
+
+    <div class="form-actions">
+
+        <a href="<%= contextPath %>/incidents"
+           class="button button-secondary">
+
             Back to incidents
+
         </a>
 
-    </p>
+        <% if (!administrator) { %>
 
-    <% if (!administrator) { %>
+        <a href="<%= contextPath %>/incidents/my"
+           class="button button-secondary">
 
-    <p>
-
-        <a href="<%= contextPath %>/incidents/my">
             Back to my incidents
+
         </a>
 
-    </p>
+        <% } %>
 
-    <% } %>
+    </div>
 
     <% } %>
 
