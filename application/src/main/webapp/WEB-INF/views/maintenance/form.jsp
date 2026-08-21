@@ -150,7 +150,11 @@
 <header>
 
     <h1>
-        METRO IT Management
+
+        <a href="<%= contextPath %>/">
+            METRO IT Management
+        </a>
+
     </h1>
 
     <% if (sessionUser != null) { %>
@@ -181,38 +185,31 @@
             Dashboard
         </a>
 
-        |
-
         <a href="<%= contextPath %>/equipment">
             Equipment
         </a>
-
-        |
 
         <a href="<%= contextPath %>/incidents">
             Incidents
         </a>
 
-        |
-
         <a href="<%= contextPath %>/incidents/my">
             My incidents
         </a>
-
-        |
 
         <a href="<%= contextPath %>/maintenance">
             Maintenance
         </a>
 
-        |
-
         <form method="post"
               action="<%= contextPath %>/logout"
-              style="display: inline;">
+              class="inline-form">
 
-            <button type="submit">
+            <button type="submit"
+                    class="button button-secondary">
+
                 Sign out
+
             </button>
 
         </form>
@@ -225,303 +222,402 @@
 
 <main>
 
-    <h2>
-        Add maintenance record
-    </h2>
+    <%@ include file="/WEB-INF/views/common/navigation.jspf" %>
 
     <% if (incident == null) { %>
 
-    <p>
+    <div class="page-header">
+
+        <div>
+
+            <h2>
+                Add maintenance record
+            </h2>
+
+            <p>
+                Maintenance information cannot be created
+                without a valid incident.
+            </p>
+
+        </div>
+
+    </div>
+
+    <div class="warning-message">
+
         Incident information is not available.
-    </p>
 
-    <p>
+    </div>
 
-        <a href="<%= contextPath %>/incidents/my">
+    <div class="form-actions">
+
+        <a href="<%= contextPath %>/incidents/my"
+           class="button button-secondary">
+
             Back to my incidents
+
         </a>
 
-    </p>
+        <a href="<%= contextPath %>/maintenance"
+           class="button button-secondary">
+
+            Maintenance history
+
+        </a>
+
+    </div>
 
     <% } else { %>
 
-    <p>
-        Record the maintenance work performed
-        for this incident.
-    </p>
+    <div class="page-header">
 
-    <hr>
+        <div>
 
-    <h3>
-        Incident information
-    </h3>
+            <h2>
+                Add maintenance record
+            </h2>
 
-    <p>
+            <p>
+                Record diagnostics, repair,
+                configuration or other technical work
+                performed for incident
+                #<%= incident.getId() %>.
+            </p>
 
-        <strong>
-            Incident:
-        </strong>
+        </div>
 
-        #<%= incident.getId() %>
-        -
-        <%= escapeHtml(
-                incident.getTitle()
-        ) %>
+        <a href="<%= contextPath %>/incidents/details?id=<%= incident.getId() %>"
+           class="button button-secondary">
 
-    </p>
+            Back to incident
 
-    <p>
+        </a>
 
-        <strong>
-            Status:
-        </strong>
+    </div>
 
-        <%= formatEnum(
-                incident.getStatus()
-        ) %>
+    <section class="content-card"
+             aria-labelledby="maintenance-incident-title">
 
-    </p>
+        <div class="content-card-header">
 
-    <p>
+            <div>
 
-        <strong>
-            Priority:
-        </strong>
+                <h2 id="maintenance-incident-title">
+                    Incident information
+                </h2>
 
-        <%= formatEnum(
-                incident.getPriority()
-        ) %>
+                <span>
+                    Incident associated with this
+                    maintenance record.
+                </span>
 
-    </p>
+            </div>
 
-    <p>
+        </div>
 
-        <strong>
-            Assigned technician ID:
-        </strong>
+        <dl>
 
-        <%= displayValue(
-                incident.getAssignedTechnicianId()
-        ) %>
+            <dt>
+                Incident
+            </dt>
 
-    </p>
+            <dd>
 
-    <hr>
+                #<%= incident.getId() %>
+                -
+                <%= escapeHtml(
+                        incident.getTitle()
+                ) %>
 
-    <h3>
-        Equipment information
-    </h3>
+            </dd>
 
-    <% if (equipment != null) { %>
+            <dt>
+                Status
+            </dt>
 
-    <p>
+            <dd>
 
-        <strong>
-            Inventory number:
-        </strong>
+                <%= formatEnum(
+                        incident.getStatus()
+                ) %>
 
-        <%= displayValue(
-                equipment.getInventoryNumber()
-        ) %>
+            </dd>
 
-    </p>
+            <dt>
+                Priority
+            </dt>
 
-    <p>
+            <dd>
 
-        <strong>
-            Equipment:
-        </strong>
+                <%= formatEnum(
+                        incident.getPriority()
+                ) %>
 
-        <%= displayValue(
-                equipment.getName()
-        ) %>
+            </dd>
 
-    </p>
+            <dt>
+                Assigned technician ID
+            </dt>
 
-    <p>
+            <dd>
 
-        <strong>
-            Type:
-        </strong>
+                <%= displayValue(
+                        incident.getAssignedTechnicianId()
+                ) %>
 
-        <%= displayValue(
-                equipment.getType()
-        ) %>
+            </dd>
 
-    </p>
+        </dl>
 
-    <p>
+    </section>
 
-        <strong>
-            Manufacturer:
-        </strong>
+    <section class="content-card"
+             aria-labelledby="maintenance-equipment-title">
 
-        <%= displayValue(
-                equipment.getManufacturer()
-        ) %>
+        <div class="content-card-header">
 
-    </p>
+            <div>
 
-    <p>
+                <h2 id="maintenance-equipment-title">
+                    Equipment information
+                </h2>
 
-        <strong>
-            Model:
-        </strong>
+                <span>
+                    Equipment affected by the incident.
+                </span>
 
-        <%= displayValue(
-                equipment.getModel()
-        ) %>
+            </div>
 
-    </p>
+        </div>
 
-    <% } else { %>
+        <% if (equipment != null) { %>
 
-    <p>
-        Equipment information is not available.
-    </p>
+        <dl>
 
-    <% } %>
+            <dt>
+                Inventory number
+            </dt>
 
-    <hr>
+            <dd>
 
-    <h3>
-        Maintenance work
-    </h3>
+                <%= displayValue(
+                        equipment.getInventoryNumber()
+                ) %>
 
-    <form method="post"
-          action="<%= contextPath %>/maintenance/create">
+            </dd>
 
-        <input type="hidden"
-               name="incidentId"
-               value="<%= incident.getId() %>">
+            <dt>
+                Equipment
+            </dt>
 
-        <p>
+            <dd>
 
-            <label for="workDescription">
+                <%= displayValue(
+                        equipment.getName()
+                ) %>
 
-                <strong>
-                    Work description:
-                </strong>
+            </dd>
 
-            </label>
+            <dt>
+                Type
+            </dt>
 
-        </p>
+            <dd>
 
-        <p>
+                <%= displayValue(
+                        equipment.getType()
+                ) %>
 
-                <textarea id="workDescription"
-                          name="workDescription"
-                          rows="7"
-                          cols="80"
-                          maxlength="5000"
-                          placeholder="Describe the maintenance work performed"
-                          required></textarea>
+            </dd>
 
-        </p>
+            <dt>
+                Manufacturer
+            </dt>
 
-        <p>
-            Describe the diagnostics, repair,
-            configuration or other technical work performed.
-        </p>
+            <dd>
 
-        <p>
+                <%= displayValue(
+                        equipment.getManufacturer()
+                ) %>
 
-            <label for="replacedComponents">
+            </dd>
 
-                <strong>
-                    Replaced components:
-                </strong>
+            <dt>
+                Model
+            </dt>
 
-            </label>
+            <dd>
 
-        </p>
+                <%= displayValue(
+                        equipment.getModel()
+                ) %>
 
-        <p>
+            </dd>
 
-                <textarea id="replacedComponents"
-                          name="replacedComponents"
-                          rows="4"
-                          cols="80"
-                          maxlength="3000"
-                          placeholder="Optional: list replaced components"></textarea>
+        </dl>
 
-        </p>
+        <% } else { %>
 
-        <p>
-            Leave this field empty if no components
-            were replaced.
-        </p>
+        <div class="warning-message">
 
-        <p>
+            Equipment information is not available.
 
-            <label for="result">
+        </div>
 
-                <strong>
-                    Maintenance result:
-                </strong>
+        <% } %>
 
-            </label>
+    </section>
 
-        </p>
+    <section class="content-card"
+             aria-labelledby="maintenance-work-title">
 
-        <p>
+        <div class="content-card-header">
 
-            <select id="result"
-                    name="result"
-                    required>
+            <div>
 
-                <option value="">
-                    Select result
-                </option>
+                <h2 id="maintenance-work-title">
+                    Maintenance work
+                </h2>
 
-                <% for (MaintenanceResult result
-                        : results) { %>
+                <span>
+                    Describe the performed technical work
+                    and its final result.
+                </span>
 
-                <option value="<%= result.name() %>">
+            </div>
 
-                    <%= formatEnum(
-                            result
-                    ) %>
+        </div>
 
-                </option>
+        <form method="post"
+              action="<%= contextPath %>/maintenance/create">
 
-                <% } %>
+            <input type="hidden"
+                   name="incidentId"
+                   value="<%= incident.getId() %>">
 
-            </select>
+            <div class="form-grid">
 
-        </p>
+                <div class="form-group form-group-full">
 
-        <p>
+                    <div>
+                        <label for="workDescription">
+                            Work description
+                        </label>
+                    </div>
 
-            <button type="submit">
-                Save maintenance record
-            </button>
+                    <textarea id="workDescription"
+                              name="workDescription"
+                              rows="7"
+                              maxlength="5000"
+                              placeholder="Describe the maintenance work performed"
+                              required></textarea>
 
-            <a href="<%= contextPath %>/incidents/details?id=<%= incident.getId() %>">
-                Cancel
-            </a>
+                    <small class="form-help">
+                        Describe diagnostics, repair,
+                        configuration or other technical
+                        work performed.
+                    </small>
 
-        </p>
+                </div>
 
-    </form>
+                <div class="form-group form-group-full">
 
-    <hr>
+                    <div>
+                        <label for="replacedComponents">
+                            Replaced components
+                        </label>
+                    </div>
 
-    <p>
+                    <textarea id="replacedComponents"
+                              name="replacedComponents"
+                              rows="4"
+                              maxlength="3000"
+                              placeholder="Optional: list replaced components"></textarea>
 
-        <a href="<%= contextPath %>/incidents/details?id=<%= incident.getId() %>">
+                    <small class="form-help">
+                        Leave this field empty if no
+                        components were replaced.
+                    </small>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="result">
+                        Maintenance result
+                    </label>
+
+                    <select id="result"
+                            name="result"
+                            required>
+
+                        <option value="">
+                            Select result
+                        </option>
+
+                        <% for (MaintenanceResult result
+                                : results) { %>
+
+                        <option value="<%= result.name() %>">
+
+                            <%= formatEnum(
+                                    result
+                            ) %>
+
+                        </option>
+
+                        <% } %>
+
+                    </select>
+
+                    <small class="form-help">
+                        Select the final result of the
+                        maintenance activity.
+                    </small>
+
+                </div>
+
+            </div>
+
+            <div class="form-actions">
+
+                <button type="submit"
+                        class="button button-primary">
+
+                    Save maintenance record
+
+                </button>
+
+                <a href="<%= contextPath %>/incidents/details?id=<%= incident.getId() %>"
+                   class="button button-secondary">
+
+                    Cancel
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
+
+    <div class="form-actions">
+
+        <a href="<%= contextPath %>/incidents/details?id=<%= incident.getId() %>"
+           class="button button-secondary">
+
             Back to incident details
+
         </a>
 
-    </p>
+        <a href="<%= contextPath %>/maintenance"
+           class="button button-secondary">
 
-    <p>
-
-        <a href="<%= contextPath %>/maintenance">
             View maintenance history
+
         </a>
 
-    </p>
+    </div>
 
     <% } %>
 
