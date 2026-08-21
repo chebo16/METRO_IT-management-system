@@ -5,6 +5,7 @@ import com.chebo16.metroit.exception.ServiceException;
 import com.chebo16.metroit.exception.ValidationException;
 import com.chebo16.metroit.model.Incident;
 import com.chebo16.metroit.model.User;
+import com.chebo16.metroit.model.enums.IncidentStatus;
 import com.chebo16.metroit.model.enums.UserRole;
 import com.chebo16.metroit.service.IncidentService;
 import com.chebo16.metroit.service.UserService;
@@ -78,6 +79,10 @@ public final class IncidentAssignServlet
                             incidentId
                     );
 
+            validateIncidentAssignment(
+                    incident
+            );
+
             User technician =
                     userService.getUserById(
                             technicianId
@@ -132,6 +137,27 @@ public final class IncidentAssignServlet
             throw new ServletException(
                     "Unable to assign technician to the incident.",
                     exception
+            );
+        }
+    }
+
+    private void validateIncidentAssignment(
+            Incident incident
+    ) {
+
+        if (incident.getStatus()
+                == IncidentStatus.RESOLVED) {
+
+            throw new ValidationException(
+                    "Technician assignment cannot be changed for a resolved incident."
+            );
+        }
+
+        if (incident.getStatus()
+                == IncidentStatus.CLOSED) {
+
+            throw new ValidationException(
+                    "Technician assignment cannot be changed for a closed incident."
             );
         }
     }
