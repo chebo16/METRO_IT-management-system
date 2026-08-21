@@ -58,6 +58,29 @@
                         .replace('_', ' ')
         );
     }
+
+    private static String maintenanceResultClass(
+            MaintenanceResult result
+    ) {
+
+        if (result == null) {
+            return "maintenance-result-unknown";
+        }
+
+        if (result == MaintenanceResult.SUCCESS) {
+            return "maintenance-result-success";
+        }
+
+        if (result == MaintenanceResult.PARTIALLY_COMPLETED) {
+            return "maintenance-result-partial";
+        }
+
+        if (result == MaintenanceResult.FAILED) {
+            return "maintenance-result-failed";
+        }
+
+        return "maintenance-result-unknown";
+    }
 %>
 
 <%
@@ -245,7 +268,11 @@
 <header>
 
     <h1>
-        METRO IT Management
+
+        <a href="<%= contextPath %>/">
+            METRO IT Management
+        </a>
+
     </h1>
 
     <% if (sessionUser != null) { %>
@@ -276,15 +303,11 @@
             Dashboard
         </a>
 
-        |
-
         <% if (administrator) { %>
 
         <a href="<%= contextPath %>/admin/users">
             Users
         </a>
-
-        |
 
         <% } %>
 
@@ -292,13 +315,9 @@
             Equipment
         </a>
 
-        |
-
         <a href="<%= contextPath %>/incidents">
             Incidents
         </a>
-
-        |
 
         <% if (!administrator) { %>
 
@@ -306,22 +325,21 @@
             My incidents
         </a>
 
-        |
-
         <% } %>
 
         <a href="<%= contextPath %>/maintenance">
             Maintenance
         </a>
 
-        |
-
         <form method="post"
               action="<%= contextPath %>/logout"
-              style="display: inline;">
+              class="inline-form">
 
-            <button type="submit">
+            <button type="submit"
+                    class="button button-secondary">
+
                 Sign out
+
             </button>
 
         </form>
@@ -334,299 +352,398 @@
 
 <main>
 
-    <h2>
-        Maintenance history
-    </h2>
+    <%@ include file="/WEB-INF/views/common/navigation.jspf" %>
 
-    <% if (administrator) { %>
+    <div class="page-header">
 
-    <p>
-        All recorded maintenance activities
-        in the IT management system.
-    </p>
+        <div>
 
-    <% } else { %>
+            <h2>
+                Maintenance history
+            </h2>
 
-    <p>
-        Maintenance activities performed
-        by your technician account.
-    </p>
+            <% if (administrator) { %>
 
-    <% } %>
+            <p>
+                All recorded maintenance activities
+                in the IT management system.
+            </p>
+
+            <% } else { %>
+
+            <p>
+                Maintenance activities performed by you.
+            </p>
+
+            <% } %>
+
+        </div>
+
+    </div>
 
     <% if ("created".equals(success)) { %>
 
-    <p>
-        <strong>
-            Maintenance record was created successfully.
-        </strong>
-    </p>
+    <div class="success-message"
+         role="status">
+
+        Maintenance record was created successfully.
+
+    </div>
 
     <% } %>
 
-    <hr>
+    <section class="statistics-grid"
+             aria-label="Maintenance statistics">
 
-    <h3>
-        Statistics
-    </h3>
+        <article class="statistics-card">
 
-    <p>
-        <strong>
-            Total records:
-        </strong>
+            <span class="statistics-label">
+                Total records
+            </span>
 
-        <%= totalRecords %>
-    </p>
+            <strong class="statistics-value">
+                <%= totalRecords %>
+            </strong>
 
-    <p>
-        <strong>
-            Successful:
-        </strong>
+        </article>
 
-        <%= successfulRecords %>
-    </p>
+        <article class="statistics-card">
 
-    <p>
-        <strong>
-            Partially completed:
-        </strong>
+            <span class="statistics-label">
+                Successful
+            </span>
 
-        <%= partiallyCompletedRecords %>
-    </p>
+            <strong class="statistics-value">
+                <%= successfulRecords %>
+            </strong>
 
-    <p>
-        <strong>
-            Failed:
-        </strong>
+        </article>
 
-        <%= failedRecords %>
-    </p>
+        <article class="statistics-card">
 
-    <hr>
+            <span class="statistics-label">
+                Partially completed
+            </span>
 
-    <h3>
-        Search and filters
-    </h3>
+            <strong class="statistics-value">
+                <%= partiallyCompletedRecords %>
+            </strong>
 
-    <form method="get"
-          action="<%= contextPath %>/maintenance">
+        </article>
 
-        <p>
+        <article class="statistics-card">
 
-            <label for="search">
-                Search:
-            </label>
+            <span class="statistics-label">
+                Failed
+            </span>
 
-            <input type="text"
-                   id="search"
-                   name="search"
-                   value="<%= escapeHtml(search) %>"
-                   placeholder="Description, component or ID">
+            <strong class="statistics-value">
+                <%= failedRecords %>
+            </strong>
 
-        </p>
+        </article>
 
-        <p>
+    </section>
 
-            <label for="result">
-                Result:
-            </label>
+    <section class="content-card">
 
-            <select id="result"
-                    name="result">
+        <div class="content-card-header">
 
-                <option value="">
-                    All results
-                </option>
+            <div>
 
-                <% for (MaintenanceResult result
-                        : results) { %>
+                <h2>
+                    Search and filters
+                </h2>
 
-                <option
-                        value="<%= result.name() %>"
-                        <%= result.name()
-                                .equalsIgnoreCase(
-                                        selectedResult
-                                )
-                                ? "selected"
-                                : "" %>>
+                <span>
+                    Search maintenance records by
+                    description, replaced component
+                    or identifier and filter by result.
+                </span>
 
-                    <%= formatEnum(result) %>
+            </div>
 
-                </option>
+        </div>
 
-                <% } %>
+        <form method="get"
+              action="<%= contextPath %>/maintenance"
+              class="filter-form">
 
-            </select>
+            <div class="filter-grid">
 
-        </p>
+                <div class="form-group">
 
-        <p>
+                    <label for="search">
+                        Search
+                    </label>
 
-            <button type="submit">
-                Apply filters
-            </button>
+                    <input type="search"
+                           id="search"
+                           name="search"
+                           value="<%= escapeHtml(search) %>"
+                           placeholder="Description, component or ID"
+                           maxlength="150">
 
-            <a href="<%= contextPath %>/maintenance">
-                Reset
-            </a>
+                </div>
 
-        </p>
+                <div class="form-group">
 
-    </form>
+                    <label for="result">
+                        Result
+                    </label>
 
-    <hr>
+                    <select id="result"
+                            name="result">
 
-    <h3>
-        Maintenance records
-    </h3>
+                        <option value="">
+                            All results
+                        </option>
 
-    <p>
-        Showing
-        <strong>
-            <%= records.size() %>
-        </strong>
-        of
-        <strong>
-            <%= totalRecords %>
-        </strong>
-        record(s).
-    </p>
+                        <% for (MaintenanceResult result
+                                : results) { %>
 
-    <% if (records.isEmpty()) { %>
+                        <option value="<%= result.name() %>"
+                                <%= result.name()
+                                        .equalsIgnoreCase(
+                                                selectedResult
+                                        )
+                                        ? "selected"
+                                        : "" %>>
 
-    <p>
-        No maintenance records match
-        the selected criteria.
-    </p>
+                            <%= formatEnum(result) %>
 
-    <% } else { %>
+                        </option>
 
-    <table border="1"
-           cellpadding="8"
-           cellspacing="0">
+                        <% } %>
 
-        <thead>
+                    </select>
 
-        <tr>
+                </div>
 
-            <th>
-                ID
-            </th>
+            </div>
 
-            <th>
-                Incident
-            </th>
+            <div class="form-actions">
 
-            <th>
-                Equipment
-            </th>
+                <button type="submit"
+                        class="button button-primary">
 
-            <th>
-                Technician
-            </th>
+                    Apply filters
 
-            <th>
-                Work description
-            </th>
+                </button>
 
-            <th>
-                Replaced components
-            </th>
+                <a href="<%= contextPath %>/maintenance"
+                   class="button button-secondary">
 
-            <th>
-                Result
-            </th>
+                    Reset
 
-            <th>
-                Performed at
-            </th>
-
-            <th>
-                Actions
-            </th>
-
-        </tr>
-
-        </thead>
-
-        <tbody>
-
-        <% for (MaintenanceRecord record
-                : records) { %>
-
-        <tr>
-
-            <td>
-                #<%= record.getId() %>
-            </td>
-
-            <td>
-                #<%= record.getIncidentId() %>
-            </td>
-
-            <td>
-                #<%= record.getEquipmentId() %>
-            </td>
-
-            <td>
-                #<%= record.getTechnicianId() %>
-            </td>
-
-            <td>
-                <%= displayValue(
-                        record.getWorkDescription()
-                ) %>
-            </td>
-
-            <td>
-
-                <% if (record.getReplacedComponents()
-                        != null
-                        && !record
-                        .getReplacedComponents()
-                        .isBlank()) { %>
-
-                <%= escapeHtml(
-                        record.getReplacedComponents()
-                ) %>
-
-                <% } else { %>
-
-                None
-
-                <% } %>
-
-            </td>
-
-            <td>
-                <%= formatEnum(
-                        record.getResult()
-                ) %>
-            </td>
-
-            <td>
-                <%= displayValue(
-                        record.getPerformedAt()
-                ) %>
-            </td>
-
-            <td>
-
-                <a href="<%= contextPath %>/incidents/details?id=<%= record.getIncidentId() %>">
-                    Incident details
                 </a>
 
-            </td>
+            </div>
 
-        </tr>
+        </form>
+
+    </section>
+
+    <section class="content-card"
+             aria-labelledby="maintenance-records-title">
+
+        <div class="content-card-header">
+
+            <h2 id="maintenance-records-title">
+                Maintenance records
+            </h2>
+
+            <span>
+
+                Showing
+                <%= records.size() %>
+                of
+                <%= totalRecords %>
+                record(s)
+
+            </span>
+
+        </div>
+
+        <% if (records.isEmpty()) { %>
+
+        <div class="empty-state">
+
+            <h3>
+                No maintenance records found
+            </h3>
+
+            <p>
+                No maintenance records match
+                the selected search and result filters.
+            </p>
+
+            <a href="<%= contextPath %>/maintenance"
+               class="button button-secondary">
+
+                Clear filters
+
+            </a>
+
+        </div>
+
+        <% } else { %>
+
+        <div class="table-container">
+
+            <table class="data-table">
+
+                <thead>
+
+                <tr>
+
+                    <th scope="col">
+                        ID
+                    </th>
+
+                    <th scope="col">
+                        Incident ID
+                    </th>
+
+                    <th scope="col">
+                        Equipment ID
+                    </th>
+
+                    <% if (administrator) { %>
+
+                    <th scope="col">
+                        Technician ID
+                    </th>
+
+                    <% } %>
+
+                    <th scope="col">
+                        Work description
+                    </th>
+
+                    <th scope="col">
+                        Replaced components
+                    </th>
+
+                    <th scope="col">
+                        Result
+                    </th>
+
+                    <th scope="col">
+                        Performed at
+                    </th>
+
+                    <th scope="col">
+                        Actions
+                    </th>
+
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                <% for (MaintenanceRecord record
+                        : records) { %>
+
+                <tr>
+
+                    <td>
+                        #<%= record.getId() %>
+                    </td>
+
+                    <td>
+                        #<%= record.getIncidentId() %>
+                    </td>
+
+                    <td>
+                        #<%= record.getEquipmentId() %>
+                    </td>
+
+                    <% if (administrator) { %>
+
+                    <td>
+                        #<%= record.getTechnicianId() %>
+                    </td>
+
+                    <% } %>
+
+                    <td>
+
+                        <%= displayValue(
+                                record.getWorkDescription()
+                        ) %>
+
+                    </td>
+
+                    <td>
+
+                        <% if (record.getReplacedComponents()
+                                != null
+                                && !record
+                                .getReplacedComponents()
+                                .isBlank()) { %>
+
+                        <%= escapeHtml(
+                                record.getReplacedComponents()
+                        ) %>
+
+                        <% } else { %>
+
+                        <span class="table-secondary-text">
+                            None
+                        </span>
+
+                        <% } %>
+
+                    </td>
+
+                    <td>
+
+                        <span class="maintenance-result-badge <%= maintenanceResultClass(
+                                record.getResult()
+                        ) %>">
+
+                            <%= formatEnum(
+                                    record.getResult()
+                            ) %>
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <%= displayValue(
+                                record.getPerformedAt()
+                        ) %>
+
+                    </td>
+
+                    <td>
+
+                        <a href="<%= contextPath %>/incidents/details?id=<%= record.getIncidentId() %>"
+                           class="button button-small button-secondary">
+
+                            Incident details
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                <% } %>
+
+                </tbody>
+
+            </table>
+
+        </div>
 
         <% } %>
 
-        </tbody>
-
-    </table>
-
-    <% } %>
+    </section>
 
 </main>
 
