@@ -1,34 +1,43 @@
-# Compiled class files
-*.class
+### Maven / Build ###
+target/
+**/target/
+build/
+**/build/
 
-# Log files
-*.log
+### Local application configuration ###
+**/src/main/resources/db.properties
 
-# BlueJ files
-*.ctxt
+### Development-only utilities ###
+**/DevelopmentPasswordSetup.java
 
-# Package files
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# Java virtual machine crash logs
-hs_err_pid*
-replay_pid*
-
-# Local database credentials
-application/src/main/resources/db.properties
-
-# Maven build output
-application/target/
-
-# Local development utility
-application/src/test/java/com/chebo16/metroit/DevelopmentPasswordSetup.java
-
-# IntelliJ IDEA
+### IntelliJ IDEA ###
 .idea/
+*.iws
 *.iml
+*.ipr
+
+### Eclipse ###
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+### NetBeans ###
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Kotlin ###
+.kotlin/
+
+### Operating System ###
+.DS_Store
+Thumbs.db
