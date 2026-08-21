@@ -5,6 +5,7 @@
 
 <%@ page import="com.chebo16.metroit.web.session.SessionConstants" %>
 <%@ page import="com.chebo16.metroit.web.session.SessionUser" %>
+<%@ page import="java.util.Locale" %>
 
 <%!
     private static String escapeHtml(
@@ -220,6 +221,20 @@
                     successfulMaintenance,
                     totalMaintenanceRecords
             );
+
+    String incidentClosureRateText =
+            String.format(
+                    Locale.US,
+                    "%.1f",
+                    incidentClosureRate
+            );
+
+    String maintenanceSuccessRateText =
+            String.format(
+                    Locale.US,
+                    "%.1f",
+                    maintenanceSuccessRate
+            );
 %>
 
 <!DOCTYPE html>
@@ -274,15 +289,11 @@
             Dashboard
         </a>
 
-        |
-
         <% if (administrator) { %>
 
         <a href="<%= contextPath %>/admin/users">
             Users
         </a>
-
-        |
 
         <% } %>
 
@@ -290,13 +301,9 @@
             Equipment
         </a>
 
-        |
-
         <a href="<%= contextPath %>/incidents">
             Incidents
         </a>
-
-        |
 
         <% if (!administrator) { %>
 
@@ -304,19 +311,14 @@
             My incidents
         </a>
 
-        |
-
         <% } %>
 
         <a href="<%= contextPath %>/maintenance">
             Maintenance
         </a>
 
-        |
-
         <form method="post"
-              action="<%= contextPath %>/logout"
-              style="display: inline;">
+              action="<%= contextPath %>/logout">
 
             <button type="submit">
                 Sign out
@@ -328,503 +330,513 @@
 
 </header>
 
-<hr>
-
 <main>
 
+    <div class="page-header">
+
+        <div>
+
+            <% if (administrator) { %>
+
+            <h1>
+                Administrator dashboard
+            </h1>
+
+            <p>
+                System-wide overview of users,
+                IT equipment, incidents and maintenance activities.
+            </p>
+
+            <% } else { %>
+
+            <h1>
+                Technician dashboard
+            </h1>
+
+            <p>
+                Overview of your assigned incidents
+                and maintenance activities.
+            </p>
+
+            <% } %>
+
+        </div>
+
+    </div>
+
+
     <% if (administrator) { %>
 
-    <h2>
-        Administrator dashboard
-    </h2>
+    <section class="content-card">
 
-    <p>
-        System-wide overview of users,
-        IT equipment, incidents and maintenance activities.
-    </p>
+        <div class="content-card-header">
 
-    <% } else { %>
+            <div>
 
-    <h2>
-        Technician dashboard
-    </h2>
+                <h2>
+                    Users
+                </h2>
 
-    <p>
-        Overview of your assigned incidents
-        and maintenance activities.
-    </p>
+                <span>
+                    Current user account statistics.
+                </span>
 
-    <% } %>
+            </div>
 
-    <% if (administrator) { %>
+            <a href="<%= contextPath %>/admin/users"
+               class="button button-primary">
 
-    <hr>
+                Manage users
 
-    <section>
+            </a>
 
-        <h3>
-            Users
-        </h3>
+        </div>
 
-        <table border="1"
-               cellpadding="10"
-               cellspacing="0">
+        <div class="statistics-grid">
 
-            <thead>
+            <div class="statistics-card">
 
-            <tr>
-
-                <th>
+                <span class="statistics-label">
                     Total users
-                </th>
+                </span>
 
-                <th>
+                <strong class="statistics-value">
+                    <%= totalUsers %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
                     Active users
-                </th>
+                </span>
 
-                <th>
+                <strong class="statistics-value">
+                    <%= activeUsers %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
                     Administrators
-                </th>
+                </span>
 
-                <th>
+                <strong class="statistics-value">
+                    <%= administratorUsers %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
                     Technicians
-                </th>
+                </span>
 
-            </tr>
+                <strong class="statistics-value">
+                    <%= technicianUsers %>
+                </strong>
 
-            </thead>
+            </div>
 
-            <tbody>
-
-            <tr>
-
-                <td>
-                    <strong>
-                        <%= totalUsers %>
-                    </strong>
-                </td>
-
-                <td>
-                    <strong>
-                        <%= activeUsers %>
-                    </strong>
-                </td>
-
-                <td>
-                    <strong>
-                        <%= administratorUsers %>
-                    </strong>
-                </td>
-
-                <td>
-                    <strong>
-                        <%= technicianUsers %>
-                    </strong>
-                </td>
-
-            </tr>
-
-            </tbody>
-
-        </table>
-
-        <p>
-
-            <a href="<%= contextPath %>/admin/users">
-                Manage users
-            </a>
-
-        </p>
+        </div>
 
     </section>
 
-    <hr>
 
-    <section>
+    <section class="content-card">
 
-        <h3>
-            Equipment
-        </h3>
+        <div class="content-card-header">
 
-        <table border="1"
-               cellpadding="10"
-               cellspacing="0">
+            <div>
 
-            <thead>
+                <h2>
+                    Equipment
+                </h2>
 
-            <tr>
+                <span>
+                    Current status of registered IT equipment.
+                </span>
 
-                <th>
-                    Total
-                </th>
+            </div>
 
-                <th>
-                    Active
-                </th>
+            <a href="<%= contextPath %>/equipment"
+               class="button button-primary">
 
-                <th>
-                    In repair
-                </th>
-
-                <th>
-                    Inactive
-                </th>
-
-                <th>
-                    Decommissioned
-                </th>
-
-            </tr>
-
-            </thead>
-
-            <tbody>
-
-            <tr>
-
-                <td>
-                    <strong>
-                        <%= totalEquipment %>
-                    </strong>
-                </td>
-
-                <td>
-                    <strong>
-                        <%= activeEquipment %>
-                    </strong>
-                </td>
-
-                <td>
-                    <strong>
-                        <%= equipmentInRepair %>
-                    </strong>
-                </td>
-
-                <td>
-                    <strong>
-                        <%= inactiveEquipment %>
-                    </strong>
-                </td>
-
-                <td>
-                    <strong>
-                        <%= decommissionedEquipment %>
-                    </strong>
-                </td>
-
-            </tr>
-
-            </tbody>
-
-        </table>
-
-        <p>
-
-            <a href="<%= contextPath %>/equipment">
                 View equipment
+
             </a>
 
-        </p>
+        </div>
+
+        <div class="statistics-grid">
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    Total equipment
+                </span>
+
+                <strong class="statistics-value">
+                    <%= totalEquipment %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    Active
+                </span>
+
+                <strong class="statistics-value">
+                    <%= activeEquipment %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    In repair
+                </span>
+
+                <strong class="statistics-value">
+                    <%= equipmentInRepair %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    Inactive
+                </span>
+
+                <strong class="statistics-value">
+                    <%= inactiveEquipment %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    Decommissioned
+                </span>
+
+                <strong class="statistics-value">
+                    <%= decommissionedEquipment %>
+                </strong>
+
+            </div>
+
+        </div>
 
     </section>
 
     <% } %>
 
-    <hr>
 
-    <section>
+    <section class="content-card">
 
-        <% if (administrator) { %>
+        <div class="content-card-header">
 
-        <h3>
-            Incidents
-        </h3>
+            <div>
 
-        <% } else { %>
+                <% if (administrator) { %>
 
-        <h3>
-            My assigned incidents
-        </h3>
+                <h2>
+                    Incidents
+                </h2>
 
-        <% } %>
+                <span>
+                    System-wide incident status overview.
+                </span>
 
-        <table border="1"
-               cellpadding="10"
-               cellspacing="0">
+                <% } else { %>
 
-            <thead>
+                <h2>
+                    My assigned incidents
+                </h2>
 
-            <tr>
+                <span>
+                    Status overview of incidents assigned to you.
+                </span>
 
-                <th>
-                    Total
-                </th>
+                <% } %>
 
-                <th>
-                    New
-                </th>
+            </div>
 
-                <th>
-                    In progress
-                </th>
+            <% if (administrator) { %>
 
-                <th>
-                    Resolved
-                </th>
+            <a href="<%= contextPath %>/incidents"
+               class="button button-primary">
 
-                <th>
-                    Closed
-                </th>
-
-            </tr>
-
-            </thead>
-
-            <tbody>
-
-            <tr>
-
-                <td>
-                    <strong>
-                        <%= totalIncidents %>
-                    </strong>
-                </td>
-
-                <td>
-                    <strong>
-                        <%= newIncidents %>
-                    </strong>
-                </td>
-
-                <td>
-                    <strong>
-                        <%= inProgressIncidents %>
-                    </strong>
-                </td>
-
-                <td>
-                    <strong>
-                        <%= resolvedIncidents %>
-                    </strong>
-                </td>
-
-                <td>
-                    <strong>
-                        <%= closedIncidents %>
-                    </strong>
-                </td>
-
-            </tr>
-
-            </tbody>
-
-        </table>
-
-        <p>
-
-            <strong>
-                Closure rate:
-            </strong>
-
-            <%= String.format(
-                    "%.1f",
-                    incidentClosureRate
-            ) %>%
-
-        </p>
-
-        <% if (administrator) { %>
-
-        <p>
-
-            <a href="<%= contextPath %>/incidents">
                 View all incidents
+
             </a>
 
-        </p>
+            <% } else { %>
 
-        <% } else { %>
+            <a href="<%= contextPath %>/incidents/my"
+               class="button button-primary">
 
-        <p>
-
-            <a href="<%= contextPath %>/incidents/my">
                 View my incidents
+
             </a>
 
-        </p>
+            <% } %>
 
-        <% } %>
+        </div>
+
+        <div class="statistics-grid">
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    Total incidents
+                </span>
+
+                <strong class="statistics-value">
+                    <%= totalIncidents %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    New
+                </span>
+
+                <strong class="statistics-value">
+                    <%= newIncidents %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    In progress
+                </span>
+
+                <strong class="statistics-value">
+                    <%= inProgressIncidents %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    Resolved
+                </span>
+
+                <strong class="statistics-value">
+                    <%= resolvedIncidents %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    Closed
+                </span>
+
+                <strong class="statistics-value">
+                    <%= closedIncidents %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    Closure rate
+                </span>
+
+                <strong class="statistics-value">
+                    <%= incidentClosureRateText %>%
+                </strong>
+
+            </div>
+
+        </div>
 
     </section>
 
-    <hr>
 
-    <section>
+    <section class="content-card">
 
-        <% if (administrator) { %>
+        <div class="content-card-header">
 
-        <h3>
-            Maintenance
-        </h3>
+            <div>
 
-        <% } else { %>
+                <% if (administrator) { %>
 
-        <h3>
-            My maintenance activity
-        </h3>
+                <h2>
+                    Maintenance
+                </h2>
 
-        <% } %>
+                <span>
+                    System-wide maintenance activity overview.
+                </span>
 
-        <table border="1"
-               cellpadding="10"
-               cellspacing="0">
+                <% } else { %>
 
-            <thead>
+                <h2>
+                    My maintenance activity
+                </h2>
 
-            <tr>
+                <span>
+                    Summary of maintenance records performed by you.
+                </span>
 
-                <th>
-                    Total records
-                </th>
+                <% } %>
 
-                <th>
-                    Successful
-                </th>
+            </div>
 
-                <th>
-                    Partially completed
-                </th>
+            <a href="<%= contextPath %>/maintenance"
+               class="button button-primary">
 
-                <th>
-                    Failed
-                </th>
-
-            </tr>
-
-            </thead>
-
-            <tbody>
-
-            <tr>
-
-                <td>
-                    <strong>
-                        <%= totalMaintenanceRecords %>
-                    </strong>
-                </td>
-
-                <td>
-                    <strong>
-                        <%= successfulMaintenance %>
-                    </strong>
-                </td>
-
-                <td>
-                    <strong>
-                        <%= partiallyCompletedMaintenance %>
-                    </strong>
-                </td>
-
-                <td>
-                    <strong>
-                        <%= failedMaintenance %>
-                    </strong>
-                </td>
-
-            </tr>
-
-            </tbody>
-
-        </table>
-
-        <p>
-
-            <strong>
-                Success rate:
-            </strong>
-
-            <%= String.format(
-                    "%.1f",
-                    maintenanceSuccessRate
-            ) %>%
-
-        </p>
-
-        <p>
-
-            <a href="<%= contextPath %>/maintenance">
                 View maintenance history
+
             </a>
 
-        </p>
+        </div>
+
+        <div class="statistics-grid">
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    Total records
+                </span>
+
+                <strong class="statistics-value">
+                    <%= totalMaintenanceRecords %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    Successful
+                </span>
+
+                <strong class="statistics-value">
+                    <%= successfulMaintenance %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    Partially completed
+                </span>
+
+                <strong class="statistics-value">
+                    <%= partiallyCompletedMaintenance %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    Failed
+                </span>
+
+                <strong class="statistics-value">
+                    <%= failedMaintenance %>
+                </strong>
+
+            </div>
+
+            <div class="statistics-card">
+
+                <span class="statistics-label">
+                    Success rate
+                </span>
+
+                <strong class="statistics-value">
+                    <%= maintenanceSuccessRateText %>%
+                </strong>
+
+            </div>
+
+        </div>
 
     </section>
 
-    <hr>
 
-    <section>
+    <section class="content-card">
 
-        <h3>
-            Quick actions
-        </h3>
+        <div class="content-card-header">
 
-        <% if (administrator) { %>
+            <div>
 
-        <p>
+                <h2>
+                    Quick actions
+                </h2>
+
+                <span>
+                    Frequently used system actions.
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="actions">
+
+            <% if (administrator) { %>
 
             <a href="<%= contextPath %>/admin/users">
                 Manage users
             </a>
-
-            |
 
             <a href="<%= contextPath %>/equipment">
                 Manage equipment
             </a>
 
-            |
-
             <a href="<%= contextPath %>/admin/incidents/create">
                 Create incident
             </a>
-
-            |
 
             <a href="<%= contextPath %>/incidents">
                 Incident management
             </a>
 
-            |
-
             <a href="<%= contextPath %>/maintenance">
                 Maintenance history
             </a>
 
-        </p>
-
-        <% } else { %>
-
-        <p>
+            <% } else { %>
 
             <a href="<%= contextPath %>/incidents/my">
                 My incidents
             </a>
 
-            |
-
             <a href="<%= contextPath %>/equipment">
                 Equipment
             </a>
-
-            |
 
             <a href="<%= contextPath %>/maintenance">
                 My maintenance history
             </a>
 
-        </p>
+            <% } %>
 
-        <% } %>
+        </div>
 
     </section>
 
