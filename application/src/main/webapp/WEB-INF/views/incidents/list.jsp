@@ -336,45 +336,73 @@
 
 </head>
 
-<body class="application-page">
+<body>
 
-<header class="application-header">
+<header>
 
-    <div class="application-brand">
+    <h1>
 
-        <a href="<%= contextPath %>/"
-           class="brand-link">
-
+        <a href="<%= contextPath %>/">
             METRO IT Management
-
         </a>
 
-    </div>
+    </h1>
 
-    <div class="header-user">
+    <% if (sessionUser != null) { %>
 
-        <% if (sessionUser != null) { %>
+    <p>
 
-        <span class="header-user-name">
+        Logged in as:
 
-                <%= escapeHtml(
-                        sessionUser.getFullName()
-                ) %>
+        <strong>
+            <%= escapeHtml(
+                    sessionUser.getFullName()
+            ) %>
+        </strong>
 
-            </span>
+        -
 
-        <span class="role-badge
-                    <%= sessionUser.isAdmin()
-                            ? "role-admin"
-                            : "role-technician" %>">
+        <%= escapeHtml(
+                sessionUser.getRole()
+        ) %>
 
-                <%= escapeHtml(
-                        sessionUser.getRole()
-                ) %>
+    </p>
 
-            </span>
+    <% } %>
+
+    <nav>
+
+        <a href="<%= contextPath %>/">
+            Dashboard
+        </a>
+
+        <% if (administrator) { %>
+
+        <a href="<%= contextPath %>/admin/users">
+            Users
+        </a>
 
         <% } %>
+
+        <a href="<%= contextPath %>/equipment">
+            Equipment
+        </a>
+
+        <a href="<%= contextPath %>/incidents">
+            Incidents
+        </a>
+
+        <% if (!administrator) { %>
+
+        <a href="<%= contextPath %>/incidents/my">
+            My incidents
+        </a>
+
+        <% } %>
+
+        <a href="<%= contextPath %>/maintenance">
+            Maintenance
+        </a>
 
         <form method="post"
               action="<%= contextPath %>/logout"
@@ -389,88 +417,313 @@
 
         </form>
 
-    </div>
+    </nav>
 
 </header>
 
-<div class="application-layout">
+<hr>
 
-    <aside class="sidebar">
+<main>
 
-        <nav aria-label="Main navigation">
+    <%@ include file="/WEB-INF/views/common/navigation.jspf" %>
 
-            <ul class="navigation-list">
+    <div class="page-header">
 
-                <li>
+        <div>
 
-                    <a href="<%= contextPath %>/">
-                        Dashboard
-                    </a>
+            <% if (administrator) { %>
 
-                </li>
+            <h2>
+                Incident management
+            </h2>
 
-                <% if (administrator) { %>
+            <% } else { %>
 
-                <li>
+            <h2>
+                Incidents
+            </h2>
 
-                    <a href="<%= contextPath %>/admin/users">
-                        Users
-                    </a>
+            <% } %>
 
-                </li>
+            <p>
+                View and track IT incidents registered
+                in the system.
+            </p>
 
-                <% } %>
+        </div>
 
-                <li>
+        <% if (administrator) { %>
 
-                    <a href="<%= contextPath %>/equipment">
-                        Equipment
-                    </a>
+        <a href="<%= contextPath %>/admin/incidents/create"
+           class="button button-primary">
 
-                </li>
+            Create incident
 
-                <li>
+        </a>
 
-                    <a href="<%= contextPath %>/incidents"
-                       class="active"
-                       aria-current="page">
+        <% } %>
 
-                        Incidents
+    </div>
 
-                    </a>
+    <% if (!successMessage.isEmpty()) { %>
 
-                </li>
+    <div class="success-message"
+         role="status">
 
-                <li>
+        <%= escapeHtml(
+                successMessage
+        ) %>
 
-                    <a href="<%= contextPath %>/maintenance">
-                        Maintenance
-                    </a>
+    </div>
 
-                </li>
+    <% } %>
 
-            </ul>
+    <section class="statistics-grid"
+             aria-label="Incident statistics">
 
-        </nav>
+        <article class="statistics-card">
 
-    </aside>
+            <span class="statistics-label">
+                Total incidents
+            </span>
 
-    <main class="application-content">
+            <strong class="statistics-value">
+                <%= totalIncidents %>
+            </strong>
 
-        <div class="page-header">
+        </article>
+
+        <article class="statistics-card">
+
+            <span class="statistics-label">
+                New
+            </span>
+
+            <strong class="statistics-value">
+                <%= newIncidents %>
+            </strong>
+
+        </article>
+
+        <article class="statistics-card">
+
+            <span class="statistics-label">
+                In progress
+            </span>
+
+            <strong class="statistics-value">
+                <%= inProgressIncidents %>
+            </strong>
+
+        </article>
+
+        <article class="statistics-card">
+
+            <span class="statistics-label">
+                Resolved
+            </span>
+
+            <strong class="statistics-value">
+                <%= resolvedIncidents %>
+            </strong>
+
+        </article>
+
+        <article class="statistics-card">
+
+            <span class="statistics-label">
+                Closed
+            </span>
+
+            <strong class="statistics-value">
+                <%= closedIncidents %>
+            </strong>
+
+        </article>
+
+    </section>
+
+    <section class="content-card">
+
+        <div class="content-card-header">
 
             <div>
 
-                <h1>
-                    Incident management
-                </h1>
+                <h2>
+                    Search and filters
+                </h2>
 
-                <p>
-                    View and track IT incidents registered
-                    in the system.
-                </p>
+                <span>
+                    Search incidents by title or
+                    description and filter by status
+                    and priority.
+                </span>
 
             </div>
+
+        </div>
+
+        <form method="get"
+              action="<%= contextPath %>/incidents"
+              class="filter-form">
+
+            <div class="filter-grid">
+
+                <div class="form-group">
+
+                    <label for="q">
+                        Search
+                    </label>
+
+                    <input type="search"
+                           id="q"
+                           name="q"
+                           value="<%= searchQuery %>"
+                           placeholder="Incident title or description..."
+                           maxlength="150">
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="status">
+                        Status
+                    </label>
+
+                    <select id="status"
+                            name="status">
+
+                        <option value="">
+                            All statuses
+                        </option>
+
+                        <% for (IncidentStatus status
+                                : availableStatuses) { %>
+
+                        <option value="<%= status.name() %>"
+                                <%= status.name()
+                                        .equals(
+                                                selectedStatus
+                                        )
+                                        ? "selected"
+                                        : "" %>>
+
+                            <%= escapeHtml(
+                                    formatStatus(
+                                            status
+                                    )
+                            ) %>
+
+                        </option>
+
+                        <% } %>
+
+                    </select>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="priority">
+                        Priority
+                    </label>
+
+                    <select id="priority"
+                            name="priority">
+
+                        <option value="">
+                            All priorities
+                        </option>
+
+                        <% for (IncidentPriority priority
+                                : availablePriorities) { %>
+
+                        <option value="<%= priority.name() %>"
+                                <%= priority.name()
+                                        .equals(
+                                                selectedPriority
+                                        )
+                                        ? "selected"
+                                        : "" %>>
+
+                            <%= escapeHtml(
+                                    formatPriority(
+                                            priority
+                                    )
+                            ) %>
+
+                        </option>
+
+                        <% } %>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <div class="form-actions">
+
+                <button type="submit"
+                        class="button button-primary">
+
+                    Apply filters
+
+                </button>
+
+                <a href="<%= contextPath %>/incidents"
+                   class="button button-secondary">
+
+                    Reset
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
+
+    <section class="content-card"
+             aria-labelledby="incident-table-title">
+
+        <div class="content-card-header">
+
+            <h2 id="incident-table-title">
+                Registered incidents
+            </h2>
+
+            <span>
+
+                Showing
+                <%= displayedIncidents %>
+                of
+                <%= totalIncidents %>
+                incident(s)
+
+            </span>
+
+        </div>
+
+        <% if (incidents.isEmpty()) { %>
+
+        <div class="empty-state">
+
+            <h3>
+                No incidents found
+            </h3>
+
+            <p>
+                No incidents match the selected
+                search and filter criteria.
+            </p>
+
+            <a href="<%= contextPath %>/incidents"
+               class="button button-secondary">
+
+                Clear filters
+
+            </a>
 
             <% if (administrator) { %>
 
@@ -485,426 +738,149 @@
 
         </div>
 
-        <% if (!successMessage.isEmpty()) { %>
+        <% } else { %>
 
-        <div class="alert alert-success"
-             role="status">
+        <div class="table-container">
 
-            <%= escapeHtml(
-                    successMessage
-            ) %>
+            <table class="data-table">
+
+                <thead>
+
+                <tr>
+
+                    <th scope="col">
+                        ID
+                    </th>
+
+                    <th scope="col">
+                        Incident
+                    </th>
+
+                    <th scope="col">
+                        Priority
+                    </th>
+
+                    <th scope="col">
+                        Status
+                    </th>
+
+                    <th scope="col">
+                        Created
+                    </th>
+
+                    <th scope="col">
+                        Actions
+                    </th>
+
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                <% for (Incident incident
+                        : incidents) { %>
+
+                <tr>
+
+                    <td>
+
+                        #<%= incident.getId() %>
+
+                    </td>
+
+                    <td>
+
+                        <strong>
+
+                            <%= escapeHtml(
+                                    incident.getTitle()
+                            ) %>
+
+                        </strong>
+
+                        <div class="table-secondary-text">
+
+                            <%= escapeHtml(
+                                    shortenText(
+                                            incident
+                                                    .getDescription(),
+                                            120
+                                    )
+                            ) %>
+
+                        </div>
+
+                    </td>
+
+                    <td>
+
+                        <span class="priority-badge
+                                <%= getPriorityCssClass(
+                                        incident.getPriority()
+                                ) %>">
+
+                            <%= escapeHtml(
+                                    formatPriority(
+                                            incident.getPriority()
+                                    )
+                            ) %>
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <span class="status-badge
+                                <%= getStatusCssClass(
+                                        incident.getStatus()
+                                ) %>">
+
+                            <%= escapeHtml(
+                                    formatStatus(
+                                            incident.getStatus()
+                                    )
+                            ) %>
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <%= escapeHtml(
+                                incident.getCreatedAt()
+                        ) %>
+
+                    </td>
+
+                    <td>
+
+                        <a href="<%= contextPath %>/incidents/details?id=<%= incident.getId() %>"
+                           class="button button-small button-secondary">
+
+                            Details
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                <% } %>
+
+                </tbody>
+
+            </table>
 
         </div>
 
         <% } %>
 
-        <section class="statistics-grid"
-                 aria-label="Incident statistics">
+    </section>
 
-            <article class="statistics-card">
-
-                <span class="statistics-label">
-                    Total incidents
-                </span>
-
-                <strong class="statistics-value">
-                    <%= totalIncidents %>
-                </strong>
-
-            </article>
-
-            <article class="statistics-card">
-
-                <span class="statistics-label">
-                    New
-                </span>
-
-                <strong class="statistics-value">
-                    <%= newIncidents %>
-                </strong>
-
-            </article>
-
-            <article class="statistics-card">
-
-                <span class="statistics-label">
-                    In progress
-                </span>
-
-                <strong class="statistics-value">
-                    <%= inProgressIncidents %>
-                </strong>
-
-            </article>
-
-            <article class="statistics-card">
-
-                <span class="statistics-label">
-                    Resolved
-                </span>
-
-                <strong class="statistics-value">
-                    <%= resolvedIncidents %>
-                </strong>
-
-            </article>
-
-            <article class="statistics-card">
-
-                <span class="statistics-label">
-                    Closed
-                </span>
-
-                <strong class="statistics-value">
-                    <%= closedIncidents %>
-                </strong>
-
-            </article>
-
-        </section>
-
-        <section class="content-card">
-
-            <div class="content-card-header">
-
-                <div>
-
-                    <h2>
-                        Search and filters
-                    </h2>
-
-                    <span>
-                        Search incidents by title or
-                        description and filter by status
-                        and priority.
-                    </span>
-
-                </div>
-
-            </div>
-
-            <form method="get"
-                  action="<%= contextPath %>/incidents"
-                  class="filter-form">
-
-                <div class="filter-grid">
-
-                    <div class="form-group">
-
-                        <label for="q">
-                            Search
-                        </label>
-
-                        <input type="search"
-                               id="q"
-                               name="q"
-                               value="<%= searchQuery %>"
-                               placeholder="Incident title or description..."
-                               maxlength="150">
-
-                    </div>
-
-                    <div class="form-group">
-
-                        <label for="status">
-                            Status
-                        </label>
-
-                        <select id="status"
-                                name="status">
-
-                            <option value="">
-                                All statuses
-                            </option>
-
-                            <% for (IncidentStatus status
-                                    : availableStatuses) { %>
-
-                            <option value="<%= status.name() %>"
-                                    <%= status.name()
-                                            .equals(
-                                                    selectedStatus
-                                            )
-                                            ? "selected"
-                                            : "" %>>
-
-                                <%= escapeHtml(
-                                        formatStatus(
-                                                status
-                                        )
-                                ) %>
-
-                            </option>
-
-                            <% } %>
-
-                        </select>
-
-                    </div>
-
-                    <div class="form-group">
-
-                        <label for="priority">
-                            Priority
-                        </label>
-
-                        <select id="priority"
-                                name="priority">
-
-                            <option value="">
-                                All priorities
-                            </option>
-
-                            <% for (IncidentPriority priority
-                                    : availablePriorities) { %>
-
-                            <option value="<%= priority.name() %>"
-                                    <%= priority.name()
-                                            .equals(
-                                                    selectedPriority
-                                            )
-                                            ? "selected"
-                                            : "" %>>
-
-                                <%= escapeHtml(
-                                        formatPriority(
-                                                priority
-                                        )
-                                ) %>
-
-                            </option>
-
-                            <% } %>
-
-                        </select>
-
-                    </div>
-
-                </div>
-
-                <div class="form-actions">
-
-                    <button type="submit"
-                            class="button button-primary">
-
-                        Apply filters
-
-                    </button>
-
-                    <a href="<%= contextPath %>/incidents"
-                       class="button button-secondary">
-
-                        Reset
-
-                    </a>
-
-                </div>
-
-            </form>
-
-        </section>
-
-        <section class="content-card"
-                 aria-labelledby="incident-table-title">
-
-            <div class="content-card-header">
-
-                <h2 id="incident-table-title">
-                    Registered incidents
-                </h2>
-
-                <span>
-
-                    Showing
-                    <%= displayedIncidents %>
-                    of
-                    <%= totalIncidents %>
-                    incident(s)
-
-                </span>
-
-            </div>
-
-            <% if (incidents.isEmpty()) { %>
-
-            <div class="empty-state">
-
-                <h3>
-                    No incidents found
-                </h3>
-
-                <p>
-                    No incidents match the selected
-                    search and filter criteria.
-                </p>
-
-                <a href="<%= contextPath %>/incidents"
-                   class="button button-secondary">
-
-                    Clear filters
-
-                </a>
-
-                <% if (administrator) { %>
-
-                <a href="<%= contextPath %>/admin/incidents/create"
-                   class="button button-primary">
-
-                    Create incident
-
-                </a>
-
-                <% } %>
-
-            </div>
-
-            <% } else { %>
-
-            <div class="table-container">
-
-                <table class="data-table">
-
-                    <thead>
-
-                    <tr>
-
-                        <th scope="col">
-                            ID
-                        </th>
-
-                        <th scope="col">
-                            Incident
-                        </th>
-
-                        <th scope="col">
-                            Priority
-                        </th>
-
-                        <th scope="col">
-                            Status
-                        </th>
-
-                        <th scope="col">
-                            Created
-                        </th>
-
-                        <th scope="col">
-                            Actions
-                        </th>
-
-                    </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                    <% for (Incident incident
-                            : incidents) { %>
-
-                    <tr>
-
-                        <td>
-
-                            #<%= incident.getId() %>
-
-                        </td>
-
-                        <td>
-
-                            <strong>
-
-                                <%= escapeHtml(
-                                        incident.getTitle()
-                                ) %>
-
-                            </strong>
-
-                            <div class="table-secondary-text">
-
-                                <%= escapeHtml(
-                                        shortenText(
-                                                incident
-                                                        .getDescription(),
-                                                120
-                                        )
-                                ) %>
-
-                            </div>
-
-                        </td>
-
-                        <td>
-
-                                    <span class="priority-badge
-                                            <%= getPriorityCssClass(
-                                                    incident.getPriority()
-                                            ) %>">
-
-                                        <%= escapeHtml(
-                                                formatPriority(
-                                                        incident.getPriority()
-                                                )
-                                        ) %>
-
-                                    </span>
-
-                        </td>
-
-                        <td>
-
-                                    <span class="status-badge
-                                            <%= getStatusCssClass(
-                                                    incident.getStatus()
-                                            ) %>">
-
-                                        <%= escapeHtml(
-                                                formatStatus(
-                                                        incident.getStatus()
-                                                )
-                                        ) %>
-
-                                    </span>
-
-                        </td>
-
-                        <td>
-
-                            <%= escapeHtml(
-                                    incident.getCreatedAt()
-                            ) %>
-
-                        </td>
-
-                        <td>
-
-                            <a href="<%= contextPath %>/incidents/details?id=<%= incident.getId() %>"
-                               class="button
-                                              button-small
-                                              button-secondary">
-
-                                Details
-
-                            </a>
-
-                        </td>
-
-                    </tr>
-
-                    <% } %>
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-            <% } %>
-
-        </section>
-
-    </main>
-
-</div>
+</main>
 
 </body>
 
