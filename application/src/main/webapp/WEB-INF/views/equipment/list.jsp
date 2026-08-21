@@ -3,6 +3,9 @@
          language="java"
          session="true" %>
 
+<%@ page import="java.util.Collections" %>
+<%@ page import="java.util.List" %>
+<%@ page import="com.chebo16.metroit.model.Equipment" %>
 <%@ page import="com.chebo16.metroit.model.enums.EquipmentStatus" %>
 <%@ page import="com.chebo16.metroit.web.session.SessionConstants" %>
 <%@ page import="com.chebo16.metroit.web.session.SessionUser" %>
@@ -24,6 +27,21 @@
                 .replace("'", "&#39;");
     }
 
+    private static long getLongAttribute(
+            Object attribute
+    ) {
+
+        if (attribute instanceof Number) {
+
+            Number number =
+                    (Number) attribute;
+
+            return number.longValue();
+        }
+
+        return 0L;
+    }
+
     private static String formatStatus(
             EquipmentStatus status
     ) {
@@ -34,6 +52,33 @@
 
         return status.name()
                 .replace('_', ' ');
+    }
+
+    private static String getStatusCssClass(
+            EquipmentStatus status
+    ) {
+
+        if (status == null) {
+            return "status-inactive";
+        }
+
+        if (status == EquipmentStatus.ACTIVE) {
+            return "status-active";
+        }
+
+        if (status == EquipmentStatus.IN_REPAIR) {
+            return "status-in-repair";
+        }
+
+        if (status == EquipmentStatus.INACTIVE) {
+            return "status-inactive";
+        }
+
+        if (status == EquipmentStatus.DECOMMISSIONED) {
+            return "status-decommissioned";
+        }
+
+        return "status-inactive";
     }
 %>
 
@@ -56,118 +101,72 @@
                         authenticatedUserAttribute;
     }
 
-    String pageTitle =
-            escapeHtml(
-                    request.getAttribute(
-                            "pageTitle"
-                    )
+    boolean administrator =
+            sessionUser != null
+                    && sessionUser.isAdmin();
+
+    List<Equipment> equipmentList =
+            Collections.emptyList();
+
+    Object equipmentAttribute =
+            request.getAttribute(
+                    "equipment"
             );
 
-    if (pageTitle.isEmpty()) {
-        pageTitle = "Equipment form";
+    if (equipmentAttribute
+            instanceof List) {
+
+        equipmentList =
+                (List<Equipment>)
+                        equipmentAttribute;
     }
 
-    String formMode =
-            escapeHtml(
+    long totalEquipment =
+            getLongAttribute(
                     request.getAttribute(
-                            "formMode"
+                            "totalEquipment"
                     )
             );
 
-    boolean editMode =
-            "edit".equalsIgnoreCase(
-                    formMode
-            );
-
-    String formAction =
-            escapeHtml(
+    long displayedEquipment =
+            getLongAttribute(
                     request.getAttribute(
-                            "formAction"
+                            "displayedEquipment"
                     )
             );
 
-    if (formAction.isEmpty()) {
-
-        formAction =
-                contextPath
-                        + "/admin/equipment/create";
-    }
-
-    String submitLabel =
-            escapeHtml(
+    long activeEquipment =
+            getLongAttribute(
                     request.getAttribute(
-                            "submitLabel"
+                            "activeEquipment"
                     )
             );
 
-    if (submitLabel.isEmpty()) {
-
-        submitLabel =
-                editMode
-                        ? "Save changes"
-                        : "Create equipment";
-    }
-
-    String equipmentId =
-            escapeHtml(
+    long inRepairEquipment =
+            getLongAttribute(
                     request.getAttribute(
-                            "equipmentId"
+                            "inRepairEquipment"
                     )
             );
 
-    String inventoryNumber =
-            escapeHtml(
+    long inactiveEquipment =
+            getLongAttribute(
                     request.getAttribute(
-                            "inventoryNumber"
+                            "inactiveEquipment"
                     )
             );
 
-    String name =
-            escapeHtml(
+    long decommissionedEquipment =
+            getLongAttribute(
                     request.getAttribute(
-                            "name"
+                            "decommissionedEquipment"
                     )
             );
 
-    String type =
+    String searchQuery =
             escapeHtml(
                     request.getAttribute(
-                            "type"
-                    )
-            );
-
-    String manufacturer =
-            escapeHtml(
-                    request.getAttribute(
-                            "manufacturer"
-                    )
-            );
-
-    String model =
-            escapeHtml(
-                    request.getAttribute(
-                            "model"
-                    )
-            );
-
-    String serialNumber =
-            escapeHtml(
-                    request.getAttribute(
-                            "serialNumber"
-                    )
-            );
-
-    String ipAddress =
-            escapeHtml(
-                    request.getAttribute(
-                            "ipAddress"
-                    )
-            );
-
-    String notes =
-            escapeHtml(
-                    request.getAttribute(
-                            "notes"
+                            "searchQuery"
                     )
             );
 
@@ -175,19 +174,6 @@
             escapeHtml(
                     request.getAttribute(
                             "selectedStatus"
-                    )
-            );
-
-    if (selectedStatus.isEmpty()) {
-
-        selectedStatus =
-                EquipmentStatus.ACTIVE.name();
-    }
-
-    String errorMessage =
-            escapeHtml(
-                    request.getAttribute(
-                            "errorMessage"
                     )
             );
 
@@ -206,6 +192,33 @@
                 (EquipmentStatus[])
                         statusesAttribute;
     }
+
+    String successParameter =
+            request.getParameter(
+                    "success"
+            );
+
+    String successMessage = "";
+
+    if ("created".equals(successParameter)) {
+
+        successMessage =
+                "Equipment was created successfully.";
+
+    } else if ("updated".equals(
+            successParameter
+    )) {
+
+        successMessage =
+                "Equipment was updated successfully.";
+
+    } else if ("status-updated".equals(
+            successParameter
+    )) {
+
+        successMessage =
+                "Equipment status was updated successfully.";
+    }
 %>
 
 <!DOCTYPE html>
@@ -219,7 +232,7 @@
           content="width=device-width, initial-scale=1.0">
 
     <title>
-        <%= pageTitle %> | METRO IT Management
+        Equipment | METRO IT Management
     </title>
 
     <link rel="stylesheet"
@@ -227,42 +240,73 @@
 
 </head>
 
-<body class="application-page">
+<body>
 
-<header class="application-header">
+<header>
 
-    <div class="application-brand">
+    <h1>
 
-        <a href="<%= contextPath %>/"
-           class="brand-link">
-
+        <a href="<%= contextPath %>/">
             METRO IT Management
-
         </a>
 
-    </div>
+    </h1>
 
-    <div class="header-user">
+    <% if (sessionUser != null) { %>
 
-        <% if (sessionUser != null) { %>
+    <p>
 
-        <span class="header-user-name">
+        Logged in as:
 
-                <%= escapeHtml(
-                        sessionUser.getFullName()
-                ) %>
+        <strong>
+            <%= escapeHtml(
+                    sessionUser.getFullName()
+            ) %>
+        </strong>
 
-            </span>
+        -
 
-        <span class="role-badge role-admin">
+        <%= escapeHtml(
+                sessionUser.getRole()
+        ) %>
 
-                <%= escapeHtml(
-                        sessionUser.getRole()
-                ) %>
+    </p>
 
-            </span>
+    <% } %>
+
+    <nav>
+
+        <a href="<%= contextPath %>/">
+            Dashboard
+        </a>
+
+        <% if (administrator) { %>
+
+        <a href="<%= contextPath %>/admin/users">
+            Users
+        </a>
 
         <% } %>
+
+        <a href="<%= contextPath %>/equipment">
+            Equipment
+        </a>
+
+        <a href="<%= contextPath %>/incidents">
+            Incidents
+        </a>
+
+        <% if (!administrator) { %>
+
+        <a href="<%= contextPath %>/incidents/my">
+            My incidents
+        </a>
+
+        <% } %>
+
+        <a href="<%= contextPath %>/maintenance">
+            Maintenance
+        </a>
 
         <form method="post"
               action="<%= contextPath %>/logout"
@@ -277,374 +321,548 @@
 
         </form>
 
-    </div>
+    </nav>
 
 </header>
 
-<div class="application-layout">
+<hr>
 
-    <aside class="sidebar">
+<main>
 
-        <nav aria-label="Main navigation">
+    <%@ include file="/WEB-INF/views/common/navigation.jspf" %>
 
-            <ul class="navigation-list">
+    <div class="page-header">
 
-                <li>
+        <div>
 
-                    <a href="<%= contextPath %>/">
+            <% if (administrator) { %>
 
-                        Dashboard
+            <h2>
+                Equipment management
+            </h2>
 
-                    </a>
+            <p>
+                View, search and manage IT equipment
+                registered in the system.
+            </p>
 
-                </li>
+            <% } else { %>
 
-                <li>
+            <h2>
+                Equipment
+            </h2>
 
-                    <a href="<%= contextPath %>/admin/users">
+            <p>
+                View and search IT equipment
+                registered in the system.
+            </p>
 
-                        Users
+            <% } %>
 
-                    </a>
+        </div>
 
-                </li>
+        <% if (administrator) { %>
 
-                <li>
+        <a href="<%= contextPath %>/admin/equipment/create"
+           class="button button-primary">
 
-                    <a href="<%= contextPath %>/equipment"
-                       class="active">
+            Add equipment
 
-                        Equipment
+        </a>
 
-                    </a>
+        <% } %>
 
-                </li>
+    </div>
 
-                <li>
+    <% if (!successMessage.isEmpty()) { %>
 
-                    <a href="<%= contextPath %>/incidents">
+    <div class="success-message"
+         role="status">
 
-                        Incidents
+        <%= escapeHtml(
+                successMessage
+        ) %>
 
-                    </a>
+    </div>
 
-                </li>
+    <% } %>
 
-                <li>
+    <section class="statistics-grid"
+             aria-label="Equipment statistics">
 
-                    <a href="<%= contextPath %>/maintenance">
+        <article class="statistics-card">
 
-                        Maintenance
+            <span class="statistics-label">
+                Total equipment
+            </span>
 
-                    </a>
+            <strong class="statistics-value">
+                <%= totalEquipment %>
+            </strong>
 
-                </li>
+        </article>
 
-            </ul>
+        <article class="statistics-card">
 
-        </nav>
+            <span class="statistics-label">
+                Active
+            </span>
 
-    </aside>
+            <strong class="statistics-value">
+                <%= activeEquipment %>
+            </strong>
 
-    <main class="application-content">
+        </article>
 
-        <div class="page-header">
+        <article class="statistics-card">
+
+            <span class="statistics-label">
+                In repair
+            </span>
+
+            <strong class="statistics-value">
+                <%= inRepairEquipment %>
+            </strong>
+
+        </article>
+
+        <article class="statistics-card">
+
+            <span class="statistics-label">
+                Inactive
+            </span>
+
+            <strong class="statistics-value">
+                <%= inactiveEquipment %>
+            </strong>
+
+        </article>
+
+        <article class="statistics-card">
+
+            <span class="statistics-label">
+                Decommissioned
+            </span>
+
+            <strong class="statistics-value">
+                <%= decommissionedEquipment %>
+            </strong>
+
+        </article>
+
+    </section>
+
+    <section class="content-card">
+
+        <div class="content-card-header">
 
             <div>
 
-                <h1>
-                    <%= pageTitle %>
-                </h1>
+                <h2>
+                    Search and filters
+                </h2>
 
-                <p>
-
-                    <% if (editMode) { %>
-
-                    Update the equipment information,
-                    network data and current status.
-
-                    <% } else { %>
-
-                    Register a new IT equipment item
-                    in the management system.
-
-                    <% } %>
-
-                </p>
+                <span>
+                    Find equipment by inventory number,
+                    name, type, manufacturer, model,
+                    serial number or IP address.
+                </span>
 
             </div>
+
+        </div>
+
+        <form method="get"
+              action="<%= contextPath %>/equipment"
+              class="filter-form">
+
+            <div class="filter-grid">
+
+                <div class="form-group">
+
+                    <label for="q">
+                        Search
+                    </label>
+
+                    <input type="search"
+                           id="q"
+                           name="q"
+                           value="<%= searchQuery %>"
+                           placeholder="Inventory number, name, model..."
+                           maxlength="150">
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="status">
+                        Status
+                    </label>
+
+                    <select id="status"
+                            name="status">
+
+                        <option value="">
+                            All statuses
+                        </option>
+
+                        <% for (EquipmentStatus status
+                                : availableStatuses) { %>
+
+                        <option value="<%= status.name() %>"
+                                <%= status.name()
+                                        .equals(
+                                                selectedStatus
+                                        )
+                                        ? "selected"
+                                        : "" %>>
+
+                            <%= escapeHtml(
+                                    formatStatus(
+                                            status
+                                    )
+                            ) %>
+
+                        </option>
+
+                        <% } %>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <div class="form-actions">
+
+                <button type="submit"
+                        class="button button-primary">
+
+                    Apply filters
+
+                </button>
+
+                <a href="<%= contextPath %>/equipment"
+                   class="button button-secondary">
+
+                    Reset
+
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
+
+    <section class="content-card"
+             aria-labelledby="equipment-table-title">
+
+        <div class="content-card-header">
+
+            <h2 id="equipment-table-title">
+                Registered equipment
+            </h2>
+
+            <span>
+
+                Showing
+                <%= displayedEquipment %>
+                of
+                <%= totalEquipment %>
+                item(s)
+
+            </span>
+
+        </div>
+
+        <% if (equipmentList.isEmpty()) { %>
+
+        <div class="empty-state">
+
+            <h3>
+                No equipment found
+            </h3>
+
+            <p>
+                No equipment matches the selected
+                search and status filters.
+            </p>
 
             <a href="<%= contextPath %>/equipment"
                class="button button-secondary">
 
-                Back to equipment
+                Clear filters
 
             </a>
 
+            <% if (administrator) { %>
+
+            <a href="<%= contextPath %>/admin/equipment/create"
+               class="button button-primary">
+
+                Add equipment
+
+            </a>
+
+            <% } %>
+
         </div>
 
-        <% if (!errorMessage.isEmpty()) { %>
+        <% } else { %>
 
-        <div class="alert alert-error"
-             role="alert">
+        <div class="table-container">
 
-            <%= errorMessage %>
+            <table class="data-table">
+
+                <thead>
+
+                <tr>
+
+                    <th scope="col">
+                        Inventory number
+                    </th>
+
+                    <th scope="col">
+                        Equipment
+                    </th>
+
+                    <th scope="col">
+                        Type
+                    </th>
+
+                    <th scope="col">
+                        Manufacturer / Model
+                    </th>
+
+                    <th scope="col">
+                        Serial number
+                    </th>
+
+                    <th scope="col">
+                        IP address
+                    </th>
+
+                    <th scope="col">
+                        Status
+                    </th>
+
+                    <th scope="col">
+                        Created
+                    </th>
+
+                    <% if (administrator) { %>
+
+                    <th scope="col">
+                        Actions
+                    </th>
+
+                    <% } %>
+
+                </tr>
+
+                </thead>
+
+                <tbody>
+
+                <% for (Equipment equipment
+                        : equipmentList) { %>
+
+                <tr>
+
+                    <td>
+
+                        <strong>
+
+                            <%= escapeHtml(
+                                    equipment
+                                            .getInventoryNumber()
+                            ) %>
+
+                        </strong>
+
+                    </td>
+
+                    <td>
+
+                        <strong>
+
+                            <%= escapeHtml(
+                                    equipment.getName()
+                            ) %>
+
+                        </strong>
+
+                        <% if (equipment.getNotes() != null
+                                && !equipment
+                                .getNotes()
+                                .isBlank()) { %>
+
+                        <div class="table-secondary-text">
+
+                            <%= escapeHtml(
+                                    equipment.getNotes()
+                            ) %>
+
+                        </div>
+
+                        <% } %>
+
+                    </td>
+
+                    <td>
+
+                        <%= escapeHtml(
+                                equipment.getType()
+                        ) %>
+
+                    </td>
+
+                    <td>
+
+                        <div>
+
+                            <%= escapeHtml(
+                                    equipment
+                                            .getManufacturer()
+                            ) %>
+
+                        </div>
+
+                        <div class="table-secondary-text">
+
+                            <%= escapeHtml(
+                                    equipment.getModel()
+                            ) %>
+
+                        </div>
+
+                    </td>
+
+                    <td>
+
+                        <%= escapeHtml(
+                                equipment
+                                        .getSerialNumber()
+                        ) %>
+
+                    </td>
+
+                    <td>
+
+                        <%= escapeHtml(
+                                equipment.getIpAddress()
+                        ) %>
+
+                    </td>
+
+                    <td>
+
+                        <span class="status-badge
+                                <%= getStatusCssClass(
+                                        equipment.getStatus()
+                                ) %>">
+
+                            <%= escapeHtml(
+                                    formatStatus(
+                                            equipment.getStatus()
+                                    )
+                            ) %>
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        <%= escapeHtml(
+                                equipment.getCreatedAt()
+                        ) %>
+
+                    </td>
+
+                    <% if (administrator) { %>
+
+                    <td>
+
+                        <div class="table-actions">
+
+                            <a href="<%= contextPath %>/admin/equipment/edit?id=<%= equipment.getId() %>"
+                               class="button button-small button-secondary">
+
+                                Edit
+
+                            </a>
+
+                            <form method="post"
+                                  action="<%= contextPath %>/admin/equipment/status"
+                                  class="inline-form">
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="<%= equipment.getId() %>">
+
+                                <label class="visually-hidden"
+                                       for="status-<%= equipment.getId() %>">
+
+                                    Equipment status
+
+                                </label>
+
+                                <select id="status-<%= equipment.getId() %>"
+                                        name="status">
+
+                                    <% for (EquipmentStatus status
+                                            : availableStatuses) { %>
+
+                                    <option value="<%= status.name() %>"
+                                            <%= status
+                                                    == equipment.getStatus()
+                                                    ? "selected"
+                                                    : "" %>>
+
+                                        <%= escapeHtml(
+                                                formatStatus(
+                                                        status
+                                                )
+                                        ) %>
+
+                                    </option>
+
+                                    <% } %>
+
+                                </select>
+
+                                <button type="submit"
+                                        class="button button-small button-primary">
+
+                                    Update status
+
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </td>
+
+                    <% } %>
+
+                </tr>
+
+                <% } %>
+
+                </tbody>
+
+            </table>
 
         </div>
 
         <% } %>
 
-        <section class="content-card equipment-form-card"
-                 aria-labelledby="equipment-form-title">
+    </section>
 
-            <div class="content-card-header">
-
-                <h2 id="equipment-form-title">
-
-                    <% if (editMode) { %>
-
-                    Equipment details
-
-                    <% } else { %>
-
-                    New equipment details
-
-                    <% } %>
-
-                </h2>
-
-            </div>
-
-            <form method="post"
-                  action="<%= formAction %>"
-                  class="equipment-form"
-                  autocomplete="off">
-
-                <% if (editMode
-                        && !equipmentId.isEmpty()) { %>
-
-                <input type="hidden"
-                       name="id"
-                       value="<%= equipmentId %>">
-
-                <% } %>
-
-                <div class="form-grid">
-
-                    <div class="form-group">
-
-                        <label for="inventoryNumber">
-                            Inventory number
-                        </label>
-
-                        <input type="text"
-                               id="inventoryNumber"
-                               name="inventoryNumber"
-                               value="<%= inventoryNumber %>"
-                               maxlength="50"
-                               required>
-
-                        <small class="form-help">
-                            Unique internal inventory number.
-                        </small>
-
-                    </div>
-
-                    <div class="form-group">
-
-                        <label for="name">
-                            Equipment name
-                        </label>
-
-                        <input type="text"
-                               id="name"
-                               name="name"
-                               value="<%= name %>"
-                               maxlength="100"
-                               required>
-
-                        <small class="form-help">
-                            Descriptive name of the equipment.
-                        </small>
-
-                    </div>
-
-                    <div class="form-group">
-
-                        <label for="type">
-                            Equipment type
-                        </label>
-
-                        <input type="text"
-                               id="type"
-                               name="type"
-                               value="<%= type %>"
-                               maxlength="50"
-                               placeholder="Computer, printer, router..."
-                               required>
-
-                        <small class="form-help">
-                            General category of the equipment.
-                        </small>
-
-                    </div>
-
-                    <div class="form-group">
-
-                        <label for="status">
-                            Status
-                        </label>
-
-                        <select id="status"
-                                name="status"
-                                required>
-
-                            <% for (EquipmentStatus status
-                                    : availableStatuses) { %>
-
-                            <option value="<%= status.name() %>"
-                                    <%= status.name()
-                                            .equals(
-                                                    selectedStatus
-                                            )
-                                            ? "selected"
-                                            : "" %>>
-
-                                <%= escapeHtml(
-                                        formatStatus(status)
-                                ) %>
-
-                            </option>
-
-                            <% } %>
-
-                        </select>
-
-                        <small class="form-help">
-                            Current operational status.
-                        </small>
-
-                    </div>
-
-                    <div class="form-group">
-
-                        <label for="manufacturer">
-                            Manufacturer
-                        </label>
-
-                        <input type="text"
-                               id="manufacturer"
-                               name="manufacturer"
-                               value="<%= manufacturer %>"
-                               maxlength="100"
-                               placeholder="Dell, HP, Cisco...">
-
-                        <small class="form-help">
-                            Optional equipment manufacturer.
-                        </small>
-
-                    </div>
-
-                    <div class="form-group">
-
-                        <label for="model">
-                            Model
-                        </label>
-
-                        <input type="text"
-                               id="model"
-                               name="model"
-                               value="<%= model %>"
-                               maxlength="100">
-
-                        <small class="form-help">
-                            Optional model designation.
-                        </small>
-
-                    </div>
-
-                    <div class="form-group">
-
-                        <label for="serialNumber">
-                            Serial number
-                        </label>
-
-                        <input type="text"
-                               id="serialNumber"
-                               name="serialNumber"
-                               value="<%= serialNumber %>"
-                               maxlength="100">
-
-                        <small class="form-help">
-                            Must be unique when provided.
-                        </small>
-
-                    </div>
-
-                    <div class="form-group">
-
-                        <label for="ipAddress">
-                            IP address
-                        </label>
-
-                        <input type="text"
-                               id="ipAddress"
-                               name="ipAddress"
-                               value="<%= ipAddress %>"
-                               maxlength="45"
-                               placeholder="192.168.1.10">
-
-                        <small class="form-help">
-                            Optional IPv4 or IPv6 address.
-                        </small>
-
-                    </div>
-
-                    <div class="form-group form-group-full">
-
-                        <label for="notes">
-                            Notes
-                        </label>
-
-                        <textarea id="notes"
-                                  name="notes"
-                                  rows="5"
-                                  maxlength="2000"
-                                  placeholder="Additional equipment information..."><%= notes %></textarea>
-
-                        <small class="form-help">
-                            Optional technical or administrative notes.
-                        </small>
-
-                    </div>
-
-                </div>
-
-                <div class="form-actions">
-
-                    <button type="submit"
-                            class="button button-primary">
-
-                        <%= submitLabel %>
-
-                    </button>
-
-                    <a href="<%= contextPath %>/equipment"
-                       class="button button-secondary">
-
-                        Cancel
-
-                    </a>
-
-                </div>
-
-            </form>
-
-        </section>
-
-    </main>
-
-</div>
+</main>
 
 </body>
 
