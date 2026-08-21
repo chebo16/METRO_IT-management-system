@@ -200,42 +200,61 @@
 
 </head>
 
-<body class="application-page">
+<body>
 
-<header class="application-header">
+<header>
 
-    <div class="application-brand">
+    <h1>
 
-        <a href="<%= contextPath %>/"
-           class="brand-link">
-
+        <a href="<%= contextPath %>/">
             METRO IT Management
-
         </a>
 
-    </div>
+    </h1>
 
-    <div class="header-user">
+    <% if (sessionUser != null) { %>
 
-        <% if (sessionUser != null) { %>
+    <p>
 
-        <span class="header-user-name">
+        Logged in as:
 
-                <%= escapeHtml(
-                        sessionUser.getFullName()
-                ) %>
+        <strong>
+            <%= escapeHtml(
+                    sessionUser.getFullName()
+            ) %>
+        </strong>
 
-            </span>
+        -
 
-        <span class="role-badge role-admin">
+        <%= escapeHtml(
+                sessionUser.getRole()
+        ) %>
 
-                <%= escapeHtml(
-                        sessionUser.getRole()
-                ) %>
+    </p>
 
-            </span>
+    <% } %>
 
-        <% } %>
+    <nav>
+
+        <a href="<%= contextPath %>/">
+            Dashboard
+        </a>
+
+        <a href="<%= contextPath %>/admin/users">
+            Users
+        </a>
+
+        <a href="<%= contextPath %>/equipment">
+            Equipment
+        </a>
+
+        <a href="<%= contextPath %>/incidents">
+            Incidents
+        </a>
+
+        <a href="<%= contextPath %>/maintenance">
+            Maintenance
+        </a>
 
         <form method="post"
               action="<%= contextPath %>/logout"
@@ -250,83 +269,90 @@
 
         </form>
 
-    </div>
+    </nav>
 
 </header>
 
-<div class="application-layout">
+<hr>
 
-    <aside class="sidebar">
+<main>
 
-        <nav aria-label="Main navigation">
+    <%@ include file="/WEB-INF/views/common/navigation.jspf" %>
 
-            <ul class="navigation-list">
+    <div class="page-header">
 
-                <li>
+        <div>
 
-                    <a href="<%= contextPath %>/">
-                        Dashboard
-                    </a>
+            <h2>
+                <%= pageTitle %>
+            </h2>
 
-                </li>
+            <p>
+                Register a new IT incident and associate
+                it with the affected equipment.
+            </p>
 
-                <li>
+        </div>
 
-                    <a href="<%= contextPath %>/admin/users">
-                        Users
-                    </a>
+        <a href="<%= contextPath %>/incidents"
+           class="button button-secondary">
 
-                </li>
+            Back to incidents
 
-                <li>
+        </a>
 
-                    <a href="<%= contextPath %>/equipment">
-                        Equipment
-                    </a>
+    </div>
 
-                </li>
+    <% if (!errorMessage.isEmpty()) { %>
 
-                <li>
+    <div class="error-message"
+         role="alert">
 
-                    <a href="<%= contextPath %>/incidents"
-                       class="active">
+        <%= errorMessage %>
 
-                        Incidents
+    </div>
 
-                    </a>
+    <% } %>
 
-                </li>
+    <section class="content-card incident-form-card"
+             aria-labelledby="incident-form-title">
 
-                <li>
-
-                    <a href="<%= contextPath %>/maintenance">
-                        Maintenance
-                    </a>
-
-                </li>
-
-            </ul>
-
-        </nav>
-
-    </aside>
-
-    <main class="application-content">
-
-        <div class="page-header">
+        <div class="content-card-header">
 
             <div>
 
-                <h1>
-                    <%= pageTitle %>
-                </h1>
+                <h2 id="incident-form-title">
+                    Incident details
+                </h2>
 
-                <p>
-                    Register a new IT incident and associate
-                    it with the affected equipment.
-                </p>
+                <span>
+                    New incidents are automatically
+                    created with status NEW.
+                </span>
 
             </div>
+
+        </div>
+
+        <% if (equipmentList.isEmpty()) { %>
+
+        <div class="error-message"
+             role="alert">
+
+            No equipment is registered in the system.
+            Equipment must exist before an incident
+            can be created.
+
+        </div>
+
+        <div class="form-actions">
+
+            <a href="<%= contextPath %>/admin/equipment/create"
+               class="button button-primary">
+
+                Add equipment
+
+            </a>
 
             <a href="<%= contextPath %>/incidents"
                class="button button-secondary">
@@ -337,275 +363,245 @@
 
         </div>
 
-        <% if (!errorMessage.isEmpty()) { %>
+        <% } else { %>
 
-        <div class="alert alert-error"
-             role="alert">
+        <form method="post"
+              action="<%= formAction %>"
+              class="incident-form"
+              autocomplete="off">
 
-            <%= errorMessage %>
+            <div class="form-grid">
 
-        </div>
+                <div class="form-group form-group-full">
 
-        <% } %>
+                    <label for="title">
+                        Incident title
+                    </label>
 
-        <section class="content-card incident-form-card"
-                 aria-labelledby="incident-form-title">
+                    <input type="text"
+                           id="title"
+                           name="title"
+                           value="<%= title %>"
+                           maxlength="150"
+                           placeholder="Short description of the problem"
+                           required>
 
-            <div class="content-card-header">
-
-                <div>
-
-                    <h2 id="incident-form-title">
-                        Incident details
-                    </h2>
-
-                    <span>
-                        New incidents are automatically
-                        created with status NEW.
-                    </span>
+                    <small class="form-help">
+                        Enter a clear and concise title
+                        for the incident.
+                    </small>
 
                 </div>
 
-            </div>
+                <div class="form-group">
 
-            <% if (equipmentList.isEmpty()) { %>
+                    <label for="priority">
+                        Priority
+                    </label>
 
-            <div class="alert alert-error"
-                 role="alert">
+                    <select id="priority"
+                            name="priority"
+                            required>
 
-                No equipment is registered in the system.
-                Equipment must exist before an incident
-                can be created.
+                        <% for (IncidentPriority priority
+                                : availablePriorities) { %>
 
-            </div>
-
-            <a href="<%= contextPath %>/admin/equipment/create"
-               class="button button-primary">
-
-                Add equipment
-
-            </a>
-
-            <% } else { %>
-
-            <form method="post"
-                  action="<%= formAction %>"
-                  class="incident-form"
-                  autocomplete="off">
-
-                <div class="form-grid">
-
-                    <div class="form-group form-group-full">
-
-                        <label for="title">
-                            Incident title
-                        </label>
-
-                        <input type="text"
-                               id="title"
-                               name="title"
-                               value="<%= title %>"
-                               maxlength="150"
-                               placeholder="Short description of the problem"
-                               required>
-
-                        <small class="form-help">
-                            Enter a clear and concise title
-                            for the incident.
-                        </small>
-
-                    </div>
-
-                    <div class="form-group">
-
-                        <label for="priority">
-                            Priority
-                        </label>
-
-                        <select id="priority"
-                                name="priority"
-                                required>
-
-                            <% for (IncidentPriority priority
-                                    : availablePriorities) { %>
-
-                            <option value="<%= priority.name() %>"
-                                    <%= priority.name()
-                                            .equals(
-                                                    selectedPriority
-                                            )
-                                            ? "selected"
-                                            : "" %>>
-
-                                <%= escapeHtml(
-                                        formatPriority(
-                                                priority
+                        <option value="<%= priority.name() %>"
+                                <%= priority.name()
+                                        .equals(
+                                                selectedPriority
                                         )
-                                ) %>
+                                        ? "selected"
+                                        : "" %>>
 
-                            </option>
-
-                            <% } %>
-
-                        </select>
-
-                        <small class="form-help">
-                            Select the operational priority
-                            of the incident.
-                        </small>
-
-                    </div>
-
-                    <div class="form-group">
-
-                        <label for="equipmentId">
-                            Affected equipment
-                        </label>
-
-                        <select id="equipmentId"
-                                name="equipmentId"
-                                required>
-
-                            <option value="">
-                                Select equipment
-                            </option>
-
-                            <% for (Equipment equipment
-                                    : equipmentList) {
-
-                                String equipmentId =
-                                        String.valueOf(
-                                                equipment.getId()
-                                        );
-                            %>
-
-                            <option value="<%= equipmentId %>"
-                                    <%= equipmentId.equals(
-                                            selectedEquipmentId
+                            <%= escapeHtml(
+                                    formatPriority(
+                                            priority
                                     )
-                                            ? "selected"
-                                            : "" %>>
+                            ) %>
 
-                                <%= escapeHtml(
-                                        equipment
-                                                .getInventoryNumber()
-                                ) %>
-                                —
-                                <%= escapeHtml(
-                                        equipment.getName()
-                                ) %>
-                                (
-                                <%= escapeHtml(
-                                        formatEquipmentStatus(
-                                                equipment.getStatus()
-                                        )
-                                ) %>
+                        </option>
+
+                        <% } %>
+
+                    </select>
+
+                    <small class="form-help">
+                        Select the operational priority
+                        of the incident.
+                    </small>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label for="equipmentId">
+                        Affected equipment
+                    </label>
+
+                    <select id="equipmentId"
+                            name="equipmentId"
+                            required>
+
+                        <option value="">
+                            Select equipment
+                        </option>
+
+                        <% for (Equipment equipment
+                                : equipmentList) {
+
+                            String equipmentId =
+                                    String.valueOf(
+                                            equipment.getId()
+                                    );
+                        %>
+
+                        <option value="<%= equipmentId %>"
+                                <%= equipmentId.equals(
+                                        selectedEquipmentId
                                 )
+                                        ? "selected"
+                                        : "" %>>
 
-                            </option>
+                            <%= escapeHtml(
+                                    equipment
+                                            .getInventoryNumber()
+                            ) %>
 
-                            <% } %>
+                            —
 
-                        </select>
+                            <%= escapeHtml(
+                                    equipment.getName()
+                            ) %>
 
-                        <small class="form-help">
-                            Select the equipment affected
-                            by the incident.
-                        </small>
+                            (
 
-                    </div>
+                            <%= escapeHtml(
+                                    formatEquipmentStatus(
+                                            equipment.getStatus()
+                                    )
+                            ) %>
 
-                    <div class="form-group form-group-full">
+                            )
 
+                        </option>
+
+                        <% } %>
+
+                    </select>
+
+                    <small class="form-help">
+                        Select the equipment affected
+                        by the incident.
+                    </small>
+
+                </div>
+
+                <div class="form-group form-group-full">
+
+                    <div>
                         <label for="description">
                             Description
                         </label>
-
-                        <textarea id="description"
-                                  name="description"
-                                  rows="8"
-                                  placeholder="Describe the problem, symptoms and relevant circumstances..."
-                                  required><%= description %></textarea>
-
-                        <small class="form-help">
-                            Provide enough information for
-                            the technician to diagnose the
-                            problem.
-                        </small>
-
                     </div>
+
+                    <textarea id="description"
+                              name="description"
+                              rows="8"
+                              placeholder="Describe the problem, symptoms and relevant circumstances..."
+                              required><%= description %></textarea>
+
+                    <small class="form-help">
+                        Provide enough information for
+                        the technician to diagnose the
+                        problem.
+                    </small>
 
                 </div>
 
-                <section class="content-card incident-information">
+            </div>
+
+            <section class="content-card incident-information">
+
+                <div class="content-card-header">
 
                     <h3>
                         Initial incident state
                     </h3>
 
-                    <dl>
-
-                        <dt>Status</dt>
-
-                        <dd>
-                            NEW
-                        </dd>
-
-                        <dt>Assigned technician</dt>
-
-                        <dd>
-                            Not assigned
-                        </dd>
-
-                        <dt>Created by</dt>
-
-                        <dd>
-
-                            <% if (sessionUser != null) { %>
-
-                            <%= escapeHtml(
-                                    sessionUser.getFullName()
-                            ) %>
-
-                            <% } else { %>
-
-                            Current administrator
-
-                            <% } %>
-
-                        </dd>
-
-                    </dl>
-
-                </section>
-
-                <div class="form-actions">
-
-                    <button type="submit"
-                            class="button button-primary">
-
-                        <%= submitLabel %>
-
-                    </button>
-
-                    <a href="<%= contextPath %>/incidents"
-                       class="button button-secondary">
-
-                        Cancel
-
-                    </a>
-
                 </div>
 
-            </form>
+                <dl>
 
-            <% } %>
+                    <dt>
+                        Status
+                    </dt>
 
-        </section>
+                    <dd>
 
-    </main>
+                        <span class="status-badge status-new">
+                            NEW
+                        </span>
 
-</div>
+                    </dd>
+
+                    <dt>
+                        Assigned technician
+                    </dt>
+
+                    <dd>
+                        Not assigned
+                    </dd>
+
+                    <dt>
+                        Created by
+                    </dt>
+
+                    <dd>
+
+                        <% if (sessionUser != null) { %>
+
+                        <%= escapeHtml(
+                                sessionUser.getFullName()
+                        ) %>
+
+                        <% } else { %>
+
+                        Current administrator
+
+                        <% } %>
+
+                    </dd>
+
+                </dl>
+
+            </section>
+
+            <div class="form-actions">
+
+                <button type="submit"
+                        class="button button-primary">
+
+                    <%= submitLabel %>
+
+                </button>
+
+                <a href="<%= contextPath %>/incidents"
+                   class="button button-secondary">
+
+                    Cancel
+
+                </a>
+
+            </div>
+
+        </form>
+
+        <% } %>
+
+    </section>
+
+</main>
 
 </body>
 
