@@ -218,6 +218,28 @@ public final class IncidentService {
             );
         }
 
+        /*
+         * Once an incident is resolved, responsibility
+         * for the completed work must remain unchanged.
+         *
+         * If the incident is reopened to IN_PROGRESS,
+         * technician assignment may be changed again.
+         */
+        if (existingIncident.getStatus()
+                == IncidentStatus.RESOLVED
+                && !Objects.equals(
+                existingIncident
+                        .getAssignedTechnicianId(),
+                incident
+                        .getAssignedTechnicianId()
+        )) {
+
+            throw new ValidationException(
+                    "Technician assignment cannot be changed "
+                            + "for a resolved incident."
+            );
+        }
+
         normalizeIncident(incident);
         validateIncidentFields(incident);
 
@@ -312,14 +334,9 @@ public final class IncidentService {
         Incident incident =
                 getIncidentById(incidentId);
 
-        if (incident.getStatus()
-                == IncidentStatus.CLOSED) {
-
-            throw new ValidationException(
-                    "Technician cannot be assigned "
-                            + "to a closed incident."
-            );
-        }
+        validateTechnicianAssignmentAllowed(
+                incident
+        );
 
         validateActiveTechnician(technicianId);
 
@@ -367,14 +384,9 @@ public final class IncidentService {
         Incident incident =
                 getIncidentById(incidentId);
 
-        if (incident.getStatus()
-                == IncidentStatus.CLOSED) {
-
-            throw new ValidationException(
-                    "Technician cannot be removed "
-                            + "from a closed incident."
-            );
-        }
+        validateTechnicianAssignmentAllowed(
+                incident
+        );
 
         try {
             boolean updated =
@@ -527,6 +539,29 @@ public final class IncidentService {
                             + currentStatus
                             + " → "
                             + newStatus
+            );
+        }
+    }
+
+    private void validateTechnicianAssignmentAllowed(
+            Incident incident
+    ) {
+
+        if (incident.getStatus()
+                == IncidentStatus.RESOLVED) {
+
+            throw new ValidationException(
+                    "Technician assignment cannot be changed "
+                            + "for a resolved incident."
+            );
+        }
+
+        if (incident.getStatus()
+                == IncidentStatus.CLOSED) {
+
+            throw new ValidationException(
+                    "Technician assignment cannot be changed "
+                            + "for a closed incident."
             );
         }
     }
