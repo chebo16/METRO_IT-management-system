@@ -3,6 +3,11 @@ target/
 **/target/
 build/
 **/build/
+out/
+**/out/
+war-check/
+*.class
+*.war
 
 ### Local application configuration ###
 **/src/main/resources/db.properties
@@ -37,6 +42,12 @@ nbdist/
 
 ### Kotlin ###
 .kotlin/
+
+### Logs / Temporary files ###
+*.log
+*.tmp
+*.temp
+hs_err_pid*
 
 ### Operating System ###
 .DS_Store
