@@ -1,13 +1,8 @@
--- Sample data
--- Run this script after database/schema.sql
--- The script is intended for an empty database.
--- Password hashes are temporary placeholders.
+-- See README.md for database setup instructions and demo account credentials.
 
 USE metro_it;
 
 START TRANSACTION;
-
--- users
 
 INSERT INTO users (
     username,
@@ -20,7 +15,7 @@ INSERT INTO users (
 VALUES
 (
     'admin',
-    'TEMPORARY_HASH_ADMIN',
+    '$2a$12$lJ5cNxM67x3dcMUmGYGAVO7RfjVTwUSFMK9wvLpC61AX83e.ErzoW',
     'System Administrator',
     'admin@example.com',
     'ADMIN',
@@ -28,7 +23,7 @@ VALUES
 ),
 (
     'technician1',
-    'TEMPORARY_HASH_TECHNICIAN1',
+    '$2a$12$PREb3BzuOZWWFyLPpgXpL.Z6SbVuwB6MmzsF1RGI9ir3O1W5q96yq',
     'Technician One',
     'technician1@example.com',
     'TECHNICIAN',
@@ -36,14 +31,12 @@ VALUES
 ),
 (
     'technician2',
-    'TEMPORARY_HASH_TECHNICIAN2',
+    '$2a$12$zhZO2q9B/Y54m8uV1aEZCOQdRr9N55JzKwreE3lm9yMH4CTjhfkhe',
     'Technician Two',
     'technician2@example.com',
     'TECHNICIAN',
     TRUE
 );
-
--- equipment
 
 INSERT INTO equipment (
     inventory_number,
@@ -201,8 +194,6 @@ VALUES
     'IP phone.'
 );
 
--- incidents
-
 INSERT INTO incidents (
     title,
     description,
@@ -218,8 +209,6 @@ INSERT INTO incidents (
     solution_description
 )
 VALUES
-
--- Main Network Switch
 (
     'Main network switch is not responding',
     'The main network switch stopped responding and network connectivity was interrupted.',
@@ -246,8 +235,6 @@ VALUES
     '2026-07-15 09:45:00',
     'The damaged uplink Ethernet cable was replaced and the switch was restarted.'
 ),
-
--- Network Router
 (
     'Network router periodically loses connection',
     'The network router periodically loses connection and interrupts access to network services.',
@@ -274,8 +261,6 @@ VALUES
     NULL,
     NULL
 ),
-
--- Self-Checkout Station 1
 (
     'Self-checkout station 1 cannot connect to the network',
     'Self-checkout station 1 cannot communicate with the internal network.',
@@ -302,8 +287,6 @@ VALUES
     NULL,
     'The IP configuration was corrected and network connectivity was successfully restored.'
 ),
-
--- Self-Checkout Station 2
 (
     'Self-checkout station 2 does not start correctly',
     'Self-checkout station 2 powers on but does not complete the startup process.',
@@ -330,8 +313,6 @@ VALUES
     '2026-07-16 13:15:00',
     'The power and data cables were reconnected and the station was restarted.'
 ),
-
--- Self-Checkout Station 3
 (
     'Self-checkout station 3 does not print receipts',
     'Self-checkout station 3 completes transactions but does not print customer receipts.',
@@ -358,8 +339,6 @@ VALUES
     NULL,
     NULL
 ),
-
--- Office Printer 1
 (
     'Office printer 1 does not print',
     'Office printer 1 receives print jobs but does not print the documents.',
@@ -386,8 +365,6 @@ VALUES
     NULL,
     NULL
 ),
-
--- Office Printer 2
 (
     'Office printer 2 reports a paper jam',
     'Office printer 2 displays a paper jam error and cannot complete printing.',
@@ -414,8 +391,6 @@ VALUES
     '2026-07-17 12:00:00',
     'The jammed paper was removed, the rollers were cleaned and printing was tested.'
 ),
-
--- Barcode Scanner 1
 (
     'Barcode scanner 1 does not read barcodes',
     'Barcode scanner 1 is powered on but does not correctly recognize barcodes.',
@@ -442,8 +417,6 @@ VALUES
     NULL,
     'The scanner lens was cleaned and the device was recalibrated.'
 ),
-
--- Barcode Scanner 2
 (
     'Barcode scanner 2 disconnects intermittently',
     'Barcode scanner 2 intermittently disconnects during operation.',
@@ -470,8 +443,6 @@ VALUES
     NULL,
     NULL
 ),
-
--- Network Terminal
 (
     'Network terminal cannot access the internal system',
     'The network terminal is connected to the network but cannot access the internal system.',
@@ -498,8 +469,6 @@ VALUES
     NULL,
     NULL
 ),
-
--- Monitor 1
 (
     'Monitor 1 does not display an image',
     'Monitor 1 powers on but does not display an image from the connected computer.',
@@ -526,8 +495,6 @@ VALUES
     '2026-07-18 13:45:00',
     'The HDMI cable was replaced and the monitor was successfully tested.'
 ),
-
--- Monitor 2
 (
     'Monitor 2 flickers during operation',
     'Monitor 2 periodically flickers while displaying an image.',
@@ -554,8 +521,6 @@ VALUES
     NULL,
     'The power cable was reconnected and the display settings were adjusted.'
 ),
-
--- Phone
 (
     'Phone has no network connection',
     'The phone is powered on but cannot connect to the network.',
@@ -583,8 +548,6 @@ VALUES
     NULL
 );
 
--- maintenance_records
-
 INSERT INTO maintenance_records (
     incident_id,
     equipment_id,
@@ -595,8 +558,6 @@ INSERT INTO maintenance_records (
     performed_at
 )
 VALUES
-
--- Main Network Switch: diagnosis
 (
     (
         SELECT i.id
@@ -622,8 +583,6 @@ VALUES
     'PARTIALLY_COMPLETED',
     '2026-07-15 08:55:00'
 ),
-
--- Main Network Switch: repair
 (
     (
         SELECT i.id
@@ -649,8 +608,6 @@ VALUES
     'SUCCESS',
     '2026-07-15 09:25:00'
 ),
-
--- Network Router
 (
     (
         SELECT i.id
@@ -676,8 +633,6 @@ VALUES
     'PARTIALLY_COMPLETED',
     '2026-07-22 09:40:00'
 ),
-
--- Self-Checkout Station 1
 (
     (
         SELECT i.id
@@ -703,8 +658,6 @@ VALUES
     'SUCCESS',
     '2026-07-16 10:50:00'
 ),
-
--- Self-Checkout Station 2
 (
     (
         SELECT i.id
@@ -730,8 +683,6 @@ VALUES
     'SUCCESS',
     '2026-07-16 12:50:00'
 ),
-
--- Office Printer 1
 (
     (
         SELECT i.id
@@ -757,8 +708,6 @@ VALUES
     'PARTIALLY_COMPLETED',
     '2026-07-21 10:00:00'
 ),
-
--- Office Printer 2
 (
     (
         SELECT i.id
@@ -784,8 +733,6 @@ VALUES
     'SUCCESS',
     '2026-07-17 11:40:00'
 ),
-
--- Barcode Scanner 1
 (
     (
         SELECT i.id
@@ -811,8 +758,6 @@ VALUES
     'SUCCESS',
     '2026-07-18 09:35:00'
 ),
-
--- Network Terminal
 (
     (
         SELECT i.id
@@ -838,8 +783,6 @@ VALUES
     'PARTIALLY_COMPLETED',
     '2026-07-21 13:45:00'
 ),
-
--- Monitor 1
 (
     (
         SELECT i.id
@@ -865,8 +808,6 @@ VALUES
     'SUCCESS',
     '2026-07-18 13:30:00'
 ),
-
--- Monitor 2
 (
     (
         SELECT i.id
