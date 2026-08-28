@@ -31,8 +31,7 @@ import java.util.List;
         name = "DashboardServlet",
         urlPatterns = "/dashboard"
 )
-public final class DashboardServlet
-        extends HttpServlet {
+public final class DashboardServlet extends HttpServlet {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -40,15 +39,9 @@ public final class DashboardServlet
     private static final String DASHBOARD_VIEW =
             "/WEB-INF/views/dashboard/index.jsp";
 
-    private final UserService userService =
-            new UserService();
-
-    private final EquipmentService equipmentService =
-            new EquipmentService();
-
-    private final IncidentService incidentService =
-            new IncidentService();
-
+    private final UserService userService = new UserService();
+    private final EquipmentService equipmentService = new EquipmentService();
+    private final IncidentService incidentService = new IncidentService();
     private final MaintenanceRecordService maintenanceRecordService =
             new MaintenanceRecordService();
 
@@ -59,52 +52,32 @@ public final class DashboardServlet
     ) throws ServletException, IOException {
 
         SessionUser sessionUser =
-                getSessionUser(
-                        request.getSession(false)
-                );
+                getSessionUser(request.getSession(false));
 
         if (sessionUser == null) {
-
             response.sendRedirect(
-                    request.getContextPath()
-                            + "/login"
+                    request.getContextPath() + "/login"
             );
-
             return;
         }
 
         try {
-
             if (sessionUser.isAdmin()) {
-
-                loadAdministratorStatistics(
-                        request
-                );
-
+                loadAdministratorStatistics(request);
             } else {
-
-                loadTechnicianStatistics(
-                        request,
-                        sessionUser
-                );
+                loadTechnicianStatistics(request, sessionUser);
             }
 
-            request.getRequestDispatcher(
-                    DASHBOARD_VIEW
-            ).forward(
-                    request,
-                    response
-            );
+            request.getRequestDispatcher(DASHBOARD_VIEW)
+                    .forward(request, response);
 
         } catch (ValidationException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_BAD_REQUEST,
                     exception.getMessage()
             );
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to load dashboard statistics.",
                     exception
@@ -120,52 +93,27 @@ public final class DashboardServlet
     private void loadAdministratorStatistics(
             HttpServletRequest request
     ) {
-
-        List<User> users =
-                userService.getAllUsers();
-
-        List<Equipment> equipment =
-                equipmentService.getAllEquipment();
-
-        List<Incident> incidents =
-                incidentService.getAllIncidents();
-
+        List<User> users = userService.getAllUsers();
+        List<Equipment> equipment = equipmentService.getAllEquipment();
+        List<Incident> incidents = incidentService.getAllIncidents();
         List<MaintenanceRecord> maintenanceRecords =
                 maintenanceRecordService.getAllRecords();
 
-        request.setAttribute(
-                "totalUsers",
-                users.size()
-        );
-
+        request.setAttribute("totalUsers", users.size());
         request.setAttribute(
                 "activeUsers",
-                countActiveUsers(
-                        users
-                )
+                countActiveUsers(users)
         );
-
         request.setAttribute(
                 "administratorUsers",
-                countUsersByRole(
-                        users,
-                        UserRole.ADMIN
-                )
+                countUsersByRole(users, UserRole.ADMIN)
         );
-
         request.setAttribute(
                 "technicianUsers",
-                countUsersByRole(
-                        users,
-                        UserRole.TECHNICIAN
-                )
+                countUsersByRole(users, UserRole.TECHNICIAN)
         );
 
-        request.setAttribute(
-                "totalEquipment",
-                equipment.size()
-        );
-
+        request.setAttribute("totalEquipment", equipment.size());
         request.setAttribute(
                 "activeEquipment",
                 countEquipmentByStatus(
@@ -173,7 +121,6 @@ public final class DashboardServlet
                         EquipmentStatus.ACTIVE
                 )
         );
-
         request.setAttribute(
                 "equipmentInRepair",
                 countEquipmentByStatus(
@@ -181,7 +128,6 @@ public final class DashboardServlet
                         EquipmentStatus.IN_REPAIR
                 )
         );
-
         request.setAttribute(
                 "inactiveEquipment",
                 countEquipmentByStatus(
@@ -189,7 +135,6 @@ public final class DashboardServlet
                         EquipmentStatus.INACTIVE
                 )
         );
-
         request.setAttribute(
                 "decommissionedEquipment",
                 countEquipmentByStatus(
@@ -198,22 +143,14 @@ public final class DashboardServlet
                 )
         );
 
-        setIncidentStatistics(
-                request,
-                incidents
-        );
-
-        setMaintenanceStatistics(
-                request,
-                maintenanceRecords
-        );
+        setIncidentStatistics(request, incidents);
+        setMaintenanceStatistics(request, maintenanceRecords);
     }
 
     private void loadTechnicianStatistics(
             HttpServletRequest request,
             SessionUser sessionUser
     ) {
-
         List<Incident> incidents =
                 incidentService.getIncidentsByTechnician(
                         sessionUser.getId()
@@ -224,27 +161,15 @@ public final class DashboardServlet
                         sessionUser.getId()
                 );
 
-        setIncidentStatistics(
-                request,
-                incidents
-        );
-
-        setMaintenanceStatistics(
-                request,
-                maintenanceRecords
-        );
+        setIncidentStatistics(request, incidents);
+        setMaintenanceStatistics(request, maintenanceRecords);
     }
 
     private void setIncidentStatistics(
             HttpServletRequest request,
             List<Incident> incidents
     ) {
-
-        request.setAttribute(
-                "totalIncidents",
-                incidents.size()
-        );
-
+        request.setAttribute("totalIncidents", incidents.size());
         request.setAttribute(
                 "newIncidents",
                 countIncidentsByStatus(
@@ -252,7 +177,6 @@ public final class DashboardServlet
                         IncidentStatus.NEW
                 )
         );
-
         request.setAttribute(
                 "inProgressIncidents",
                 countIncidentsByStatus(
@@ -260,7 +184,6 @@ public final class DashboardServlet
                         IncidentStatus.IN_PROGRESS
                 )
         );
-
         request.setAttribute(
                 "resolvedIncidents",
                 countIncidentsByStatus(
@@ -268,7 +191,6 @@ public final class DashboardServlet
                         IncidentStatus.RESOLVED
                 )
         );
-
         request.setAttribute(
                 "closedIncidents",
                 countIncidentsByStatus(
@@ -282,12 +204,10 @@ public final class DashboardServlet
             HttpServletRequest request,
             List<MaintenanceRecord> records
     ) {
-
         request.setAttribute(
                 "totalMaintenanceRecords",
                 records.size()
         );
-
         request.setAttribute(
                 "successfulMaintenance",
                 countMaintenanceByResult(
@@ -295,7 +215,6 @@ public final class DashboardServlet
                         MaintenanceResult.SUCCESS
                 )
         );
-
         request.setAttribute(
                 "partiallyCompletedMaintenance",
                 countMaintenanceByResult(
@@ -303,7 +222,6 @@ public final class DashboardServlet
                         MaintenanceResult.PARTIALLY_COMPLETED
                 )
         );
-
         request.setAttribute(
                 "failedMaintenance",
                 countMaintenanceByResult(
@@ -313,14 +231,10 @@ public final class DashboardServlet
         );
     }
 
-    private long countActiveUsers(
-            List<User> users
-    ) {
-
+    private long countActiveUsers(List<User> users) {
         long count = 0;
 
         for (User user : users) {
-
             if (user.isActive()) {
                 count++;
             }
@@ -333,11 +247,9 @@ public final class DashboardServlet
             List<User> users,
             UserRole role
     ) {
-
         long count = 0;
 
         for (User user : users) {
-
             if (user.getRole() == role) {
                 count++;
             }
@@ -350,11 +262,9 @@ public final class DashboardServlet
             List<Equipment> equipment,
             EquipmentStatus status
     ) {
-
         long count = 0;
 
         for (Equipment item : equipment) {
-
             if (item.getStatus() == status) {
                 count++;
             }
@@ -367,11 +277,9 @@ public final class DashboardServlet
             List<Incident> incidents,
             IncidentStatus status
     ) {
-
         long count = 0;
 
         for (Incident incident : incidents) {
-
             if (incident.getStatus() == status) {
                 count++;
             }
@@ -384,11 +292,9 @@ public final class DashboardServlet
             List<MaintenanceRecord> records,
             MaintenanceResult result
     ) {
-
         long count = 0;
 
         for (MaintenanceRecord record : records) {
-
             if (record.getResult() == result) {
                 count++;
             }
@@ -397,24 +303,17 @@ public final class DashboardServlet
         return count;
     }
 
-    private SessionUser getSessionUser(
-            HttpSession session
-    ) {
-
+    private SessionUser getSessionUser(HttpSession session) {
         if (session == null) {
             return null;
         }
 
-        Object authenticatedUser =
-                session.getAttribute(
-                        SessionConstants.AUTHENTICATED_USER
-                );
+        Object authenticatedUser = session.getAttribute(
+                SessionConstants.AUTHENTICATED_USER
+        );
 
-        if (authenticatedUser
-                instanceof SessionUser) {
-
-            return (SessionUser)
-                    authenticatedUser;
+        if (authenticatedUser instanceof SessionUser sessionUser) {
+            return sessionUser;
         }
 
         return null;

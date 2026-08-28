@@ -23,8 +23,7 @@ import java.util.Locale;
         name = "IncidentListServlet",
         urlPatterns = "/incidents"
 )
-public final class IncidentListServlet
-        extends HttpServlet {
+public final class IncidentListServlet extends HttpServlet {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -42,41 +41,30 @@ public final class IncidentListServlet
     ) throws ServletException, IOException {
 
         String searchQuery =
-                normalizeText(
-                        request.getParameter("q")
-                );
+                normalizeText(request.getParameter("q"));
 
         String statusValue =
-                normalizeText(
-                        request.getParameter("status")
-                );
+                normalizeText(request.getParameter("status"));
 
         String priorityValue =
-                normalizeText(
-                        request.getParameter("priority")
-                );
+                normalizeText(request.getParameter("priority"));
 
         try {
             IncidentStatus selectedStatus =
-                    parseOptionalStatus(
-                            statusValue
-                    );
+                    parseOptionalStatus(statusValue);
 
             IncidentPriority selectedPriority =
-                    parseOptionalPriority(
-                            priorityValue
-                    );
+                    parseOptionalPriority(priorityValue);
 
             List<Incident> allIncidents =
                     incidentService.getAllIncidents();
 
-            List<Incident> filteredIncidents =
-                    filterIncidents(
-                            allIncidents,
-                            searchQuery,
-                            selectedStatus,
-                            selectedPriority
-                    );
+            List<Incident> filteredIncidents = filterIncidents(
+                    allIncidents,
+                    searchQuery,
+                    selectedStatus,
+                    selectedPriority
+            );
 
             filteredIncidents.sort(
                     Comparator.comparing(
@@ -87,16 +75,8 @@ public final class IncidentListServlet
                     )
             );
 
-            request.setAttribute(
-                    "incidents",
-                    filteredIncidents
-            );
-
-            request.setAttribute(
-                    "totalIncidents",
-                    allIncidents.size()
-            );
-
+            request.setAttribute("incidents", filteredIncidents);
+            request.setAttribute("totalIncidents", allIncidents.size());
             request.setAttribute(
                     "displayedIncidents",
                     filteredIncidents.size()
@@ -134,10 +114,7 @@ public final class IncidentListServlet
                     )
             );
 
-            request.setAttribute(
-                    "searchQuery",
-                    searchQuery
-            );
+            request.setAttribute("searchQuery", searchQuery);
 
             request.setAttribute(
                     "selectedStatus",
@@ -163,22 +140,16 @@ public final class IncidentListServlet
                     IncidentPriority.values()
             );
 
-            request.getRequestDispatcher(
-                    INCIDENT_LIST_VIEW
-            ).forward(
-                    request,
-                    response
-            );
+            request.getRequestDispatcher(INCIDENT_LIST_VIEW)
+                    .forward(request, response);
 
         } catch (ValidationException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_BAD_REQUEST,
                     exception.getMessage()
             );
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to load the incident list.",
                     exception
@@ -197,26 +168,19 @@ public final class IncidentListServlet
             IncidentStatus selectedStatus,
             IncidentPriority selectedPriority
     ) {
-
-        List<Incident> filtered =
-                new ArrayList<>();
+        List<Incident> filtered = new ArrayList<>();
 
         String normalizedQuery =
-                searchQuery.toLowerCase(
-                        Locale.ROOT
-                );
+                searchQuery.toLowerCase(Locale.ROOT);
 
         for (Incident incident : incidents) {
-
             boolean statusMatches =
                     selectedStatus == null
-                            || incident.getStatus()
-                            == selectedStatus;
+                            || incident.getStatus() == selectedStatus;
 
             boolean priorityMatches =
                     selectedPriority == null
-                            || incident.getPriority()
-                            == selectedPriority;
+                            || incident.getPriority() == selectedPriority;
 
             boolean searchMatches =
                     normalizedQuery.isEmpty()
@@ -232,10 +196,7 @@ public final class IncidentListServlet
             if (statusMatches
                     && priorityMatches
                     && searchMatches) {
-
-                filtered.add(
-                        incident
-                );
+                filtered.add(incident);
             }
         }
 
@@ -246,14 +207,10 @@ public final class IncidentListServlet
             List<Incident> incidents,
             IncidentStatus status
     ) {
-
         long count = 0;
 
         for (Incident incident : incidents) {
-
-            if (incident.getStatus()
-                    == status) {
-
+            if (incident.getStatus() == status) {
                 count++;
             }
         }
@@ -261,46 +218,32 @@ public final class IncidentListServlet
         return count;
     }
 
-    private IncidentStatus parseOptionalStatus(
-            String value
-    ) {
-
+    private IncidentStatus parseOptionalStatus(String value) {
         if (value.isEmpty()) {
             return null;
         }
 
         try {
             return IncidentStatus.valueOf(
-                    value.toUpperCase(
-                            Locale.ROOT
-                    )
+                    value.toUpperCase(Locale.ROOT)
             );
-
         } catch (IllegalArgumentException exception) {
-
             throw new ValidationException(
                     "Selected incident status is invalid."
             );
         }
     }
 
-    private IncidentPriority parseOptionalPriority(
-            String value
-    ) {
-
+    private IncidentPriority parseOptionalPriority(String value) {
         if (value.isEmpty()) {
             return null;
         }
 
         try {
             return IncidentPriority.valueOf(
-                    value.toUpperCase(
-                            Locale.ROOT
-                    )
+                    value.toUpperCase(Locale.ROOT)
             );
-
         } catch (IllegalArgumentException exception) {
-
             throw new ValidationException(
                     "Selected incident priority is invalid."
             );
@@ -311,24 +254,15 @@ public final class IncidentListServlet
             String value,
             String normalizedQuery
     ) {
-
-        if (value == null
-                || value.isBlank()) {
-
+        if (value == null || value.isBlank()) {
             return false;
         }
 
-        return value.toLowerCase(
-                Locale.ROOT
-        ).contains(
-                normalizedQuery
-        );
+        return value.toLowerCase(Locale.ROOT)
+                .contains(normalizedQuery);
     }
 
-    private String normalizeText(
-            String value
-    ) {
-
+    private String normalizeText(String value) {
         if (value == null) {
             return "";
         }

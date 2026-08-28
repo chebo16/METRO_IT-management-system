@@ -28,8 +28,7 @@ import java.util.Locale;
         name = "IncidentCreateServlet",
         urlPatterns = "/admin/incidents/create"
 )
-public final class IncidentCreateServlet
-        extends HttpServlet {
+public final class IncidentCreateServlet extends HttpServlet {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -51,14 +50,9 @@ public final class IncidentCreateServlet
 
         try {
             prepareCreateForm(request);
-
-            forwardToForm(
-                    request,
-                    response
-            );
+            forwardToForm(request, response);
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to prepare the incident creation form.",
                     exception
@@ -77,88 +71,41 @@ public final class IncidentCreateServlet
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        request.setCharacterEncoding(
-                StandardCharsets.UTF_8.name()
-        );
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         String title =
-                normalizeText(
-                        request.getParameter(
-                                "title"
-                        )
-                );
+                normalizeText(request.getParameter("title"));
 
         String description =
-                normalizeText(
-                        request.getParameter(
-                                "description"
-                        )
-                );
+                normalizeText(request.getParameter("description"));
 
         String priorityValue =
-                normalizeText(
-                        request.getParameter(
-                                "priority"
-                        )
-                );
+                normalizeText(request.getParameter("priority"));
 
         String equipmentIdValue =
-                normalizeText(
-                        request.getParameter(
-                                "equipmentId"
-                        )
-                );
+                normalizeText(request.getParameter("equipmentId"));
 
         try {
             SessionUser sessionUser =
-                    getAuthenticatedUser(
-                            request
-                    );
+                    getAuthenticatedUser(request);
 
             IncidentPriority priority =
-                    parsePriority(
-                            priorityValue
-                    );
+                    parsePriority(priorityValue);
 
             long equipmentId =
-                    parseEquipmentId(
-                            equipmentIdValue
-                    );
+                    parseEquipmentId(equipmentIdValue);
 
-            Incident incident =
-                    new Incident();
+            Incident incident = new Incident();
 
-            incident.setTitle(
-                    title
-            );
+            incident.setTitle(title);
+            incident.setDescription(description);
+            incident.setPriority(priority);
+            incident.setStatus(IncidentStatus.NEW);
+            incident.setEquipmentId(equipmentId);
+            incident.setCreatedById(sessionUser.getId());
+            incident.setAssignedTechnicianId(null);
 
-            incident.setDescription(
-                    description
-            );
-
-            incident.setPriority(
-                    priority
-            );
-
-            incident.setStatus(
-                    IncidentStatus.NEW
-            );
-
-            incident.setEquipmentId(
-                    equipmentId
-            );
-
-            incident.setCreatedById(
-                    sessionUser.getId()
-            );
-
-            incident.setAssignedTechnicianId(
-                    null
-            );
-
-            incidentService.createIncident(
-                    incident
-            );
+            incidentService.createIncident(incident);
 
             response.sendRedirect(
                     response.encodeRedirectURL(
@@ -186,13 +133,9 @@ public final class IncidentCreateServlet
                     exception.getMessage()
             );
 
-            forwardToForm(
-                    request,
-                    response
-            );
+            forwardToForm(request, response);
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to create the incident.",
                     exception
@@ -214,50 +157,31 @@ public final class IncidentCreateServlet
                             + "Please try again later."
             );
 
-            forwardToForm(
-                    request,
-                    response
-            );
+            forwardToForm(request, response);
         }
     }
 
-    private void prepareCreateForm(
-            HttpServletRequest request
-    ) {
-
+    private void prepareCreateForm(HttpServletRequest request) {
         List<Equipment> equipment =
                 equipmentService.getAllEquipment();
 
-        request.setAttribute(
-                "pageTitle",
-                "Create incident"
-        );
-
+        request.setAttribute("pageTitle", "Create incident");
         request.setAttribute(
                 "formAction",
                 request.getContextPath()
                         + "/admin/incidents/create"
         );
-
         request.setAttribute(
                 "submitLabel",
                 "Create incident"
         );
-
-        request.setAttribute(
-                "equipment",
-                equipment
-        );
-
+        request.setAttribute("equipment", equipment);
         request.setAttribute(
                 "availablePriorities",
                 IncidentPriority.values()
         );
 
-        if (request.getAttribute(
-                "selectedPriority"
-        ) == null) {
-
+        if (request.getAttribute("selectedPriority") == null) {
             request.setAttribute(
                     "selectedPriority",
                     IncidentPriority.MEDIUM.name()
@@ -268,41 +192,29 @@ public final class IncidentCreateServlet
     private SessionUser getAuthenticatedUser(
             HttpServletRequest request
     ) {
-
-        HttpSession session =
-                request.getSession(false);
+        HttpSession session = request.getSession(false);
 
         if (session == null) {
-
             throw new ValidationException(
                     "Authenticated user session was not found."
             );
         }
 
-        Object authenticatedUserAttribute =
-                session.getAttribute(
-                        SessionConstants.AUTHENTICATED_USER
-                );
+        Object authenticatedUser = session.getAttribute(
+                SessionConstants.AUTHENTICATED_USER
+        );
 
-        if (!(authenticatedUserAttribute
-                instanceof SessionUser)) {
-
-            throw new ValidationException(
-                    "Authenticated user session was not found."
-            );
+        if (authenticatedUser instanceof SessionUser sessionUser) {
+            return sessionUser;
         }
 
-        return (SessionUser)
-                authenticatedUserAttribute;
+        throw new ValidationException(
+                "Authenticated user session was not found."
+        );
     }
 
-    private IncidentPriority parsePriority(
-            String priorityValue
-    ) {
-
-        if (priorityValue == null
-                || priorityValue.isBlank()) {
-
+    private IncidentPriority parsePriority(String priorityValue) {
+        if (priorityValue == null || priorityValue.isBlank()) {
             throw new ValidationException(
                     "Incident priority must be selected."
             );
@@ -310,23 +222,17 @@ public final class IncidentCreateServlet
 
         try {
             return IncidentPriority.valueOf(
-                    priorityValue
-                            .trim()
+                    priorityValue.trim()
                             .toUpperCase(Locale.ROOT)
             );
-
         } catch (IllegalArgumentException exception) {
-
             throw new ValidationException(
                     "Selected incident priority is invalid."
             );
         }
     }
 
-    private long parseEquipmentId(
-            String equipmentIdValue
-    ) {
-
+    private long parseEquipmentId(String equipmentIdValue) {
         if (equipmentIdValue == null
                 || equipmentIdValue.isBlank()) {
 
@@ -337,12 +243,9 @@ public final class IncidentCreateServlet
 
         try {
             long equipmentId =
-                    Long.parseLong(
-                            equipmentIdValue.trim()
-                    );
+                    Long.parseLong(equipmentIdValue.trim());
 
             if (equipmentId <= 0) {
-
                 throw new ValidationException(
                         "Equipment ID must be greater than zero."
                 );
@@ -351,7 +254,6 @@ public final class IncidentCreateServlet
             return equipmentId;
 
         } catch (NumberFormatException exception) {
-
             throw new ValidationException(
                     "Equipment ID must be a valid number."
             );
@@ -365,7 +267,6 @@ public final class IncidentCreateServlet
             String priorityValue,
             String equipmentIdValue
     ) {
-
         request.setAttribute(
                 "title",
                 valueOrEmpty(title)
@@ -376,16 +277,12 @@ public final class IncidentCreateServlet
                 valueOrEmpty(description)
         );
 
-        if (priorityValue == null
-                || priorityValue.isBlank()) {
-
+        if (priorityValue == null || priorityValue.isBlank()) {
             request.setAttribute(
                     "selectedPriority",
                     IncidentPriority.MEDIUM.name()
             );
-
         } else {
-
             request.setAttribute(
                     "selectedPriority",
                     priorityValue
@@ -394,16 +291,11 @@ public final class IncidentCreateServlet
 
         request.setAttribute(
                 "selectedEquipmentId",
-                valueOrEmpty(
-                        equipmentIdValue
-                )
+                valueOrEmpty(equipmentIdValue)
         );
     }
 
-    private String normalizeText(
-            String value
-    ) {
-
+    private String normalizeText(String value) {
         if (value == null) {
             return "";
         }
@@ -411,10 +303,7 @@ public final class IncidentCreateServlet
         return value.trim();
     }
 
-    private String valueOrEmpty(
-            String value
-    ) {
-
+    private String valueOrEmpty(String value) {
         if (value == null) {
             return "";
         }
@@ -427,11 +316,7 @@ public final class IncidentCreateServlet
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        request.getRequestDispatcher(
-                INCIDENT_FORM_VIEW
-        ).forward(
-                request,
-                response
-        );
+        request.getRequestDispatcher(INCIDENT_FORM_VIEW)
+                .forward(request, response);
     }
 }

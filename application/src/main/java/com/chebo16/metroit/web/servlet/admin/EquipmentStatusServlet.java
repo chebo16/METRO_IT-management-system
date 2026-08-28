@@ -21,8 +21,7 @@ import java.util.Locale;
         name = "EquipmentStatusServlet",
         urlPatterns = "/admin/equipment/status"
 )
-public final class EquipmentStatusServlet
-        extends HttpServlet {
+public final class EquipmentStatusServlet extends HttpServlet {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -36,10 +35,6 @@ public final class EquipmentStatusServlet
             HttpServletResponse response
     ) throws IOException {
 
-        /*
-         * Equipment status changes must only be
-         * performed through POST requests.
-         */
         response.sendError(
                 HttpServletResponse.SC_METHOD_NOT_ALLOWED,
                 "Equipment status can only be changed "
@@ -53,9 +48,7 @@ public final class EquipmentStatusServlet
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        request.setCharacterEncoding(
-                StandardCharsets.UTF_8.name()
-        );
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         try {
             long equipmentId =
@@ -69,20 +62,11 @@ public final class EquipmentStatusServlet
                     );
 
             Equipment equipment =
-                    equipmentService.getEquipmentById(
-                            equipmentId
-                    );
+                    equipmentService.getEquipmentById(equipmentId);
 
-            if (equipment.getStatus()
-                    != requestedStatus) {
-
-                equipment.setStatus(
-                        requestedStatus
-                );
-
-                equipmentService.updateEquipment(
-                        equipment
-                );
+            if (equipment.getStatus() != requestedStatus) {
+                equipment.setStatus(requestedStatus);
+                equipmentService.updateEquipment(equipment);
             }
 
             String redirectUrl =
@@ -91,27 +75,22 @@ public final class EquipmentStatusServlet
                             + "?success=status-updated";
 
             response.sendRedirect(
-                    response.encodeRedirectURL(
-                            redirectUrl
-                    )
+                    response.encodeRedirectURL(redirectUrl)
             );
 
         } catch (ValidationException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_BAD_REQUEST,
                     exception.getMessage()
             );
 
         } catch (NotFoundException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_NOT_FOUND,
                     exception.getMessage()
             );
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to change equipment status.",
                     exception
@@ -124,10 +103,7 @@ public final class EquipmentStatusServlet
         }
     }
 
-    private long parseEquipmentId(
-            String equipmentIdValue
-    ) {
-
+    private long parseEquipmentId(String equipmentIdValue) {
         if (equipmentIdValue == null
                 || equipmentIdValue.isBlank()) {
 
@@ -138,35 +114,25 @@ public final class EquipmentStatusServlet
 
         try {
             long equipmentId =
-                    Long.parseLong(
-                            equipmentIdValue.trim()
-                    );
+                    Long.parseLong(equipmentIdValue.trim());
 
             if (equipmentId <= 0) {
-
                 throw new ValidationException(
-                        "Equipment ID must be greater "
-                                + "than zero."
+                        "Equipment ID must be greater than zero."
                 );
             }
 
             return equipmentId;
 
         } catch (NumberFormatException exception) {
-
             throw new ValidationException(
                     "Equipment ID must be a valid number."
             );
         }
     }
 
-    private EquipmentStatus parseStatus(
-            String statusValue
-    ) {
-
-        if (statusValue == null
-                || statusValue.isBlank()) {
-
+    private EquipmentStatus parseStatus(String statusValue) {
+        if (statusValue == null || statusValue.isBlank()) {
             throw new ValidationException(
                     "Equipment status must be provided."
             );
@@ -174,13 +140,10 @@ public final class EquipmentStatusServlet
 
         try {
             return EquipmentStatus.valueOf(
-                    statusValue
-                            .trim()
+                    statusValue.trim()
                             .toUpperCase(Locale.ROOT)
             );
-
         } catch (IllegalArgumentException exception) {
-
             throw new ValidationException(
                     "Selected equipment status is invalid."
             );

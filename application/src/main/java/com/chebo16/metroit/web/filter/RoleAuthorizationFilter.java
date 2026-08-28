@@ -20,12 +20,9 @@ import java.io.IOException;
         urlPatterns = "/admin/*",
         dispatcherTypes = DispatcherType.REQUEST
 )
-public final class RoleAuthorizationFilter
-        implements Filter {
+public final class RoleAuthorizationFilter implements Filter {
 
-    private static final String LOGIN_PATH =
-            "/login";
-
+    private static final String LOGIN_PATH = "/login";
     private static final String ACCESS_DENIED_VIEW =
             "/WEB-INF/views/auth/access-denied.jsp";
 
@@ -42,30 +39,16 @@ public final class RoleAuthorizationFilter
         HttpServletResponse response =
                 (HttpServletResponse) servletResponse;
 
-        HttpSession session =
-                request.getSession(false);
+        HttpSession session = request.getSession(false);
+        SessionUser sessionUser = getSessionUser(session);
 
-        SessionUser sessionUser =
-                getSessionUser(session);
-
-        /*
-         * This check provides additional protection even
-         * if filter execution order changes.
-         */
         if (sessionUser == null) {
-
             saveOriginalRequest(request);
-
-            redirectToLogin(
-                    request,
-                    response
-            );
-
+            redirectToLogin(request, response);
             return;
         }
 
         if (!sessionUser.isAdmin()) {
-
             preventPageCaching(response);
 
             response.setStatus(
@@ -74,26 +57,16 @@ public final class RoleAuthorizationFilter
 
             request.getRequestDispatcher(
                     ACCESS_DENIED_VIEW
-            ).forward(
-                    request,
-                    response
-            );
+            ).forward(request, response);
 
             return;
         }
 
         preventPageCaching(response);
-
-        filterChain.doFilter(
-                request,
-                response
-        );
+        filterChain.doFilter(request, response);
     }
 
-    private SessionUser getSessionUser(
-            HttpSession session
-    ) {
-
+    private SessionUser getSessionUser(HttpSession session) {
         if (session == null) {
             return null;
         }
@@ -110,18 +83,12 @@ public final class RoleAuthorizationFilter
         return null;
     }
 
-    private void saveOriginalRequest(
-            HttpServletRequest request
-    ) {
-
-        if (!"GET".equalsIgnoreCase(
-                request.getMethod()
-        )) {
+    private void saveOriginalRequest(HttpServletRequest request) {
+        if (!"GET".equalsIgnoreCase(request.getMethod())) {
             return;
         }
 
-        HttpSession session =
-                request.getSession(true);
+        HttpSession session = request.getSession(true);
 
         Object existingTarget =
                 session.getAttribute(
@@ -132,19 +99,12 @@ public final class RoleAuthorizationFilter
             return;
         }
 
-        String originalRequestUri =
-                request.getRequestURI();
+        String originalRequestUri = request.getRequestURI();
+        String queryString = request.getQueryString();
 
-        String queryString =
-                request.getQueryString();
-
-        if (queryString != null
-                && !queryString.isBlank()) {
-
+        if (queryString != null && !queryString.isBlank()) {
             originalRequestUri =
-                    originalRequestUri
-                            + "?"
-                            + queryString;
+                    originalRequestUri + "?" + queryString;
         }
 
         session.setAttribute(
@@ -159,33 +119,22 @@ public final class RoleAuthorizationFilter
     ) throws IOException {
 
         String loginUrl =
-                request.getContextPath()
-                        + LOGIN_PATH;
+                request.getContextPath() + LOGIN_PATH;
 
         response.sendRedirect(
-                response.encodeRedirectURL(
-                        loginUrl
-                )
+                response.encodeRedirectURL(loginUrl)
         );
     }
 
     private void preventPageCaching(
             HttpServletResponse response
     ) {
-
         response.setHeader(
                 "Cache-Control",
                 "no-cache, no-store, must-revalidate"
         );
 
-        response.setHeader(
-                "Pragma",
-                "no-cache"
-        );
-
-        response.setDateHeader(
-                "Expires",
-                0
-        );
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
     }
 }

@@ -23,8 +23,7 @@ import java.nio.charset.StandardCharsets;
         name = "IncidentAssignServlet",
         urlPatterns = "/admin/incidents/assign"
 )
-public final class IncidentAssignServlet
-        extends HttpServlet {
+public final class IncidentAssignServlet extends HttpServlet {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -53,52 +52,31 @@ public final class IncidentAssignServlet
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        request.setCharacterEncoding(
-                StandardCharsets.UTF_8.name()
-        );
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         try {
-            long incidentId =
-                    parsePositiveId(
-                            request.getParameter(
-                                    "incidentId"
-                            ),
-                            "Incident"
-                    );
+            long incidentId = parsePositiveId(
+                    request.getParameter("incidentId"),
+                    "Incident"
+            );
 
-            long technicianId =
-                    parsePositiveId(
-                            request.getParameter(
-                                    "technicianId"
-                            ),
-                            "Technician"
-                    );
+            long technicianId = parsePositiveId(
+                    request.getParameter("technicianId"),
+                    "Technician"
+            );
 
             Incident incident =
-                    incidentService.getIncidentById(
-                            incidentId
-                    );
+                    incidentService.getIncidentById(incidentId);
 
-            validateIncidentAssignment(
-                    incident
-            );
+            validateIncidentAssignment(incident);
 
             User technician =
-                    userService.getUserById(
-                            technicianId
-                    );
+                    userService.getUserById(technicianId);
 
-            validateTechnician(
-                    technician
-            );
+            validateTechnician(technician);
 
-            incident.setAssignedTechnicianId(
-                    technicianId
-            );
-
-            incidentService.updateIncident(
-                    incident
-            );
+            incident.setAssignedTechnicianId(technicianId);
+            incidentService.updateIncident(incident);
 
             String redirectUrl =
                     request.getContextPath()
@@ -108,27 +86,22 @@ public final class IncidentAssignServlet
                             + "&success=assigned";
 
             response.sendRedirect(
-                    response.encodeRedirectURL(
-                            redirectUrl
-                    )
+                    response.encodeRedirectURL(redirectUrl)
             );
 
         } catch (ValidationException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_BAD_REQUEST,
                     exception.getMessage()
             );
 
         } catch (NotFoundException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_NOT_FOUND,
                     exception.getMessage()
             );
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to assign technician to the incident.",
                     exception
@@ -141,41 +114,28 @@ public final class IncidentAssignServlet
         }
     }
 
-    private void validateIncidentAssignment(
-            Incident incident
-    ) {
-
-        if (incident.getStatus()
-                == IncidentStatus.RESOLVED) {
-
+    private void validateIncidentAssignment(Incident incident) {
+        if (incident.getStatus() == IncidentStatus.RESOLVED) {
             throw new ValidationException(
                     "Technician assignment cannot be changed for a resolved incident."
             );
         }
 
-        if (incident.getStatus()
-                == IncidentStatus.CLOSED) {
-
+        if (incident.getStatus() == IncidentStatus.CLOSED) {
             throw new ValidationException(
                     "Technician assignment cannot be changed for a closed incident."
             );
         }
     }
 
-    private void validateTechnician(
-            User technician
-    ) {
-
-        if (technician.getRole()
-                != UserRole.TECHNICIAN) {
-
+    private void validateTechnician(User technician) {
+        if (technician.getRole() != UserRole.TECHNICIAN) {
             throw new ValidationException(
                     "Selected user is not a technician."
             );
         }
 
         if (!technician.isActive()) {
-
             throw new ValidationException(
                     "Selected technician account is inactive."
             );
@@ -186,37 +146,26 @@ public final class IncidentAssignServlet
             String value,
             String fieldName
     ) {
-
-        if (value == null
-                || value.isBlank()) {
-
+        if (value == null || value.isBlank()) {
             throw new ValidationException(
-                    fieldName
-                            + " ID must be provided."
+                    fieldName + " ID must be provided."
             );
         }
 
         try {
-            long id =
-                    Long.parseLong(
-                            value.trim()
-                    );
+            long id = Long.parseLong(value.trim());
 
             if (id <= 0) {
-
                 throw new ValidationException(
-                        fieldName
-                                + " ID must be greater than zero."
+                        fieldName + " ID must be greater than zero."
                 );
             }
 
             return id;
 
         } catch (NumberFormatException exception) {
-
             throw new ValidationException(
-                    fieldName
-                            + " ID must be a valid number."
+                    fieldName + " ID must be a valid number."
             );
         }
     }

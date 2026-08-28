@@ -28,8 +28,7 @@ import java.util.List;
         name = "IncidentDetailsServlet",
         urlPatterns = "/incidents/details"
 )
-public final class IncidentDetailsServlet
-        extends HttpServlet {
+public final class IncidentDetailsServlet extends HttpServlet {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -37,15 +36,9 @@ public final class IncidentDetailsServlet
     private static final String INCIDENT_DETAILS_VIEW =
             "/WEB-INF/views/incidents/details.jsp";
 
-    private final IncidentService incidentService =
-            new IncidentService();
-
-    private final EquipmentService equipmentService =
-            new EquipmentService();
-
-    private final UserService userService =
-            new UserService();
-
+    private final IncidentService incidentService = new IncidentService();
+    private final EquipmentService equipmentService = new EquipmentService();
+    private final UserService userService = new UserService();
     private final MaintenanceRecordService maintenanceRecordService =
             new MaintenanceRecordService();
 
@@ -56,18 +49,11 @@ public final class IncidentDetailsServlet
     ) throws ServletException, IOException {
 
         try {
-
             long incidentId =
-                    parseIncidentId(
-                            request.getParameter(
-                                    "id"
-                            )
-                    );
+                    parseIncidentId(request.getParameter("id"));
 
             Incident incident =
-                    incidentService.getIncidentById(
-                            incidentId
-                    );
+                    incidentService.getIncidentById(incidentId);
 
             Equipment equipment =
                     equipmentService.getEquipmentById(
@@ -80,9 +66,7 @@ public final class IncidentDetailsServlet
                     );
 
             User assignedTechnician =
-                    loadAssignedTechnician(
-                            incident
-                    );
+                    loadAssignedTechnician(incident);
 
             List<User> availableTechnicians =
                     loadAvailableTechnicians();
@@ -92,59 +76,38 @@ public final class IncidentDetailsServlet
                             incidentId
                     );
 
-            request.setAttribute(
-                    "incident",
-                    incident
-            );
-
-            request.setAttribute(
-                    "equipment",
-                    equipment
-            );
-
-            request.setAttribute(
-                    "createdByUser",
-                    createdByUser
-            );
-
+            request.setAttribute("incident", incident);
+            request.setAttribute("equipment", equipment);
+            request.setAttribute("createdByUser", createdByUser);
             request.setAttribute(
                     "assignedTechnician",
                     assignedTechnician
             );
-
             request.setAttribute(
                     "availableTechnicians",
                     availableTechnicians
             );
-
             request.setAttribute(
                     "maintenanceRecords",
                     maintenanceRecords
             );
 
-            request.getRequestDispatcher(
-                    INCIDENT_DETAILS_VIEW
-            ).forward(
-                    request,
-                    response
-            );
+            request.getRequestDispatcher(INCIDENT_DETAILS_VIEW)
+                    .forward(request, response);
 
         } catch (ValidationException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_BAD_REQUEST,
                     exception.getMessage()
             );
 
         } catch (NotFoundException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_NOT_FOUND,
                     exception.getMessage()
             );
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to load incident details.",
                     exception
@@ -157,45 +120,28 @@ public final class IncidentDetailsServlet
         }
     }
 
-    private User loadAssignedTechnician(
-            Incident incident
-    ) {
-
-        Long technicianId =
-                incident.getAssignedTechnicianId();
+    private User loadAssignedTechnician(Incident incident) {
+        Long technicianId = incident.getAssignedTechnicianId();
 
         if (technicianId == null) {
             return null;
         }
 
-        return userService.getUserById(
-                technicianId
-        );
+        return userService.getUserById(technicianId);
     }
 
     private List<User> loadAvailableTechnicians() {
-
-        List<User> allUsers =
-                userService.getAllUsers();
-
-        List<User> technicians =
-                new ArrayList<>();
+        List<User> allUsers = userService.getAllUsers();
+        List<User> technicians = new ArrayList<>();
 
         for (User user : allUsers) {
-
             boolean technicianRole =
-                    user.getRole()
-                            == UserRole.TECHNICIAN;
+                    user.getRole() == UserRole.TECHNICIAN;
 
-            boolean activeAccount =
-                    user.isActive();
+            boolean activeAccount = user.isActive();
 
-            if (technicianRole
-                    && activeAccount) {
-
-                technicians.add(
-                        user
-                );
+            if (technicianRole && activeAccount) {
+                technicians.add(user);
             }
         }
 
@@ -209,27 +155,18 @@ public final class IncidentDetailsServlet
         return technicians;
     }
 
-    private long parseIncidentId(
-            String incidentIdValue
-    ) {
-
-        if (incidentIdValue == null
-                || incidentIdValue.isBlank()) {
-
+    private long parseIncidentId(String incidentIdValue) {
+        if (incidentIdValue == null || incidentIdValue.isBlank()) {
             throw new ValidationException(
                     "Incident ID must be provided."
             );
         }
 
         try {
-
             long incidentId =
-                    Long.parseLong(
-                            incidentIdValue.trim()
-                    );
+                    Long.parseLong(incidentIdValue.trim());
 
             if (incidentId <= 0) {
-
                 throw new ValidationException(
                         "Incident ID must be greater than zero."
                 );
@@ -238,7 +175,6 @@ public final class IncidentDetailsServlet
             return incidentId;
 
         } catch (NumberFormatException exception) {
-
             throw new ValidationException(
                     "Incident ID must be a valid number."
             );

@@ -20,7 +20,6 @@ public final class LogoutServlet extends HttpServlet {
             HttpServletRequest request,
             HttpServletResponse response
     ) throws IOException {
-
         logout(request, response);
     }
 
@@ -29,7 +28,6 @@ public final class LogoutServlet extends HttpServlet {
             HttpServletRequest request,
             HttpServletResponse response
     ) throws IOException {
-
         logout(request, response);
     }
 
@@ -38,16 +36,14 @@ public final class LogoutServlet extends HttpServlet {
             HttpServletResponse response
     ) throws IOException {
 
-        HttpSession session =
-                request.getSession(false);
+        HttpSession session = request.getSession(false);
 
         if (session != null) {
             session.invalidate();
         }
 
         String loginUrl =
-                request.getContextPath()
-                        + "/login?logout=true";
+                request.getContextPath() + "/login?logout=true";
 
         response.sendRedirect(
                 response.encodeRedirectURL(loginUrl)

@@ -20,8 +20,7 @@ import java.util.Locale;
         name = "EquipmentCreateServlet",
         urlPatterns = "/admin/equipment/create"
 )
-public final class EquipmentCreateServlet
-        extends HttpServlet {
+public final class EquipmentCreateServlet extends HttpServlet {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -39,11 +38,7 @@ public final class EquipmentCreateServlet
     ) throws ServletException, IOException {
 
         prepareCreateForm(request);
-
-        forwardToForm(
-                request,
-                response
-        );
+        forwardToForm(request, response);
     }
 
     @Override
@@ -52,94 +47,69 @@ public final class EquipmentCreateServlet
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        request.setCharacterEncoding(
-                StandardCharsets.UTF_8.name()
-        );
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         String inventoryNumber =
                 normalizeRequiredText(
-                        request.getParameter(
-                                "inventoryNumber"
-                        )
+                        request.getParameter("inventoryNumber")
                 );
 
         String name =
                 normalizeRequiredText(
-                        request.getParameter(
-                                "name"
-                        )
+                        request.getParameter("name")
                 );
 
         String type =
                 normalizeRequiredText(
-                        request.getParameter(
-                                "type"
-                        )
+                        request.getParameter("type")
                 );
 
         String manufacturer =
                 normalizeOptionalText(
-                        request.getParameter(
-                                "manufacturer"
-                        )
+                        request.getParameter("manufacturer")
                 );
 
         String model =
                 normalizeOptionalText(
-                        request.getParameter(
-                                "model"
-                        )
+                        request.getParameter("model")
                 );
 
         String serialNumber =
                 normalizeOptionalText(
-                        request.getParameter(
-                                "serialNumber"
-                        )
+                        request.getParameter("serialNumber")
                 );
 
         String ipAddress =
                 normalizeOptionalText(
-                        request.getParameter(
-                                "ipAddress"
-                        )
+                        request.getParameter("ipAddress")
                 );
 
         String statusValue =
                 normalizeRequiredText(
-                        request.getParameter(
-                                "status"
-                        )
+                        request.getParameter("status")
                 );
 
         String notes =
                 normalizeOptionalText(
-                        request.getParameter(
-                                "notes"
-                        )
+                        request.getParameter("notes")
                 );
 
         try {
-            EquipmentStatus status =
-                    parseStatus(statusValue);
+            EquipmentStatus status = parseStatus(statusValue);
 
-            Equipment equipment =
-                    new Equipment(
-                            inventoryNumber,
-                            name,
-                            type,
-                            manufacturer,
-                            model,
-                            serialNumber,
-                            ipAddress,
-                            notes
-                    );
+            Equipment equipment = new Equipment(
+                    inventoryNumber,
+                    name,
+                    type,
+                    manufacturer,
+                    model,
+                    serialNumber,
+                    ipAddress,
+                    notes
+            );
 
             equipment.setStatus(status);
-
-            equipmentService.createEquipment(
-                    equipment
-            );
+            equipmentService.createEquipment(equipment);
 
             response.sendRedirect(
                     response.encodeRedirectURL(
@@ -150,7 +120,6 @@ public final class EquipmentCreateServlet
             );
 
         } catch (ValidationException exception) {
-
             prepareCreateForm(request);
 
             preserveFormValues(
@@ -171,13 +140,9 @@ public final class EquipmentCreateServlet
                     exception.getMessage()
             );
 
-            forwardToForm(
-                    request,
-                    response
-            );
+            forwardToForm(request, response);
 
         } catch (IllegalArgumentException exception) {
-
             prepareCreateForm(request);
 
             preserveFormValues(
@@ -198,13 +163,9 @@ public final class EquipmentCreateServlet
                     exception.getMessage()
             );
 
-            forwardToForm(
-                    request,
-                    response
-            );
+            forwardToForm(request, response);
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to create equipment.",
                     exception
@@ -231,47 +192,28 @@ public final class EquipmentCreateServlet
                             + "Please try again later."
             );
 
-            forwardToForm(
-                    request,
-                    response
-            );
+            forwardToForm(request, response);
         }
     }
 
-    private void prepareCreateForm(
-            HttpServletRequest request
-    ) {
-
-        request.setAttribute(
-                "pageTitle",
-                "Add equipment"
-        );
-
-        request.setAttribute(
-                "formMode",
-                "create"
-        );
-
+    private void prepareCreateForm(HttpServletRequest request) {
+        request.setAttribute("pageTitle", "Add equipment");
+        request.setAttribute("formMode", "create");
         request.setAttribute(
                 "formAction",
                 request.getContextPath()
                         + "/admin/equipment/create"
         );
-
         request.setAttribute(
                 "submitLabel",
                 "Create equipment"
         );
-
         request.setAttribute(
                 "availableStatuses",
                 EquipmentStatus.values()
         );
 
-        if (request.getAttribute(
-                "selectedStatus"
-        ) == null) {
-
+        if (request.getAttribute("selectedStatus") == null) {
             request.setAttribute(
                     "selectedStatus",
                     EquipmentStatus.ACTIVE.name()
@@ -291,57 +233,45 @@ public final class EquipmentCreateServlet
             String statusValue,
             String notes
     ) {
-
         request.setAttribute(
                 "inventoryNumber",
                 valueOrEmpty(inventoryNumber)
         );
-
         request.setAttribute(
                 "name",
                 valueOrEmpty(name)
         );
-
         request.setAttribute(
                 "type",
                 valueOrEmpty(type)
         );
-
         request.setAttribute(
                 "manufacturer",
                 valueOrEmpty(manufacturer)
         );
-
         request.setAttribute(
                 "model",
                 valueOrEmpty(model)
         );
-
         request.setAttribute(
                 "serialNumber",
                 valueOrEmpty(serialNumber)
         );
-
         request.setAttribute(
                 "ipAddress",
                 valueOrEmpty(ipAddress)
         );
-
         request.setAttribute(
                 "notes",
                 valueOrEmpty(notes)
         );
 
-        if (statusValue == null
-                || statusValue.isBlank()) {
-
+        if (statusValue == null || statusValue.isBlank()) {
             request.setAttribute(
                     "selectedStatus",
                     EquipmentStatus.ACTIVE.name()
             );
-
         } else {
-
             request.setAttribute(
                     "selectedStatus",
                     statusValue
@@ -349,35 +279,23 @@ public final class EquipmentCreateServlet
         }
     }
 
-    private EquipmentStatus parseStatus(
-            String statusValue
-    ) {
-
-        if (statusValue == null
-                || statusValue.isBlank()) {
-
+    private EquipmentStatus parseStatus(String statusValue) {
+        if (statusValue == null || statusValue.isBlank()) {
             return EquipmentStatus.ACTIVE;
         }
 
         try {
             return EquipmentStatus.valueOf(
-                    statusValue
-                            .trim()
-                            .toUpperCase(Locale.ROOT)
+                    statusValue.trim().toUpperCase(Locale.ROOT)
             );
-
         } catch (IllegalArgumentException exception) {
-
             throw new ValidationException(
                     "Selected equipment status is invalid."
             );
         }
     }
 
-    private String normalizeRequiredText(
-            String value
-    ) {
-
+    private String normalizeRequiredText(String value) {
         if (value == null) {
             return "";
         }
@@ -385,16 +303,12 @@ public final class EquipmentCreateServlet
         return value.trim();
     }
 
-    private String normalizeOptionalText(
-            String value
-    ) {
-
+    private String normalizeOptionalText(String value) {
         if (value == null) {
             return null;
         }
 
-        String normalizedValue =
-                value.trim();
+        String normalizedValue = value.trim();
 
         if (normalizedValue.isEmpty()) {
             return null;
@@ -403,10 +317,7 @@ public final class EquipmentCreateServlet
         return normalizedValue;
     }
 
-    private String valueOrEmpty(
-            String value
-    ) {
-
+    private String valueOrEmpty(String value) {
         if (value == null) {
             return "";
         }
@@ -419,11 +330,7 @@ public final class EquipmentCreateServlet
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        request.getRequestDispatcher(
-                EQUIPMENT_FORM_VIEW
-        ).forward(
-                request,
-                response
-        );
+        request.getRequestDispatcher(EQUIPMENT_FORM_VIEW)
+                .forward(request, response);
     }
 }

@@ -113,19 +113,11 @@ public final class IncidentDAO {
             """;
 
     public List<Incident> findAll() throws SQLException {
-
         List<Incident> incidents = new ArrayList<>();
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(SELECT_ALL_SQL);
-
-                ResultSet resultSet =
-                        statement.executeQuery()
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_ALL_SQL);
+             ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
                 incidents.add(mapRow(resultSet));
@@ -135,23 +127,15 @@ public final class IncidentDAO {
         return incidents;
     }
 
-    public Optional<Incident> findById(long id)
-            throws SQLException {
-
+    public Optional<Incident> findById(long id) throws SQLException {
         validateId(id, "Incident ID");
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(SELECT_BY_ID_SQL)
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID_SQL)) {
 
             statement.setLong(1, id);
 
             try (ResultSet resultSet = statement.executeQuery()) {
-
                 if (resultSet.next()) {
                     return Optional.of(mapRow(resultSet));
                 }
@@ -161,9 +145,7 @@ public final class IncidentDAO {
         return Optional.empty();
     }
 
-    public List<Incident> findByStatus(IncidentStatus status)
-            throws SQLException {
-
+    public List<Incident> findByStatus(IncidentStatus status) throws SQLException {
         Objects.requireNonNull(
                 status,
                 "Incident status must not be null."
@@ -171,20 +153,12 @@ public final class IncidentDAO {
 
         List<Incident> incidents = new ArrayList<>();
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(
-                                SELECT_BY_STATUS_SQL
-                        )
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_STATUS_SQL)) {
 
             statement.setString(1, status.name());
 
             try (ResultSet resultSet = statement.executeQuery()) {
-
                 while (resultSet.next()) {
                     incidents.add(mapRow(resultSet));
                 }
@@ -194,27 +168,17 @@ public final class IncidentDAO {
         return incidents;
     }
 
-    public List<Incident> findByTechnicianId(long technicianId)
-            throws SQLException {
-
+    public List<Incident> findByTechnicianId(long technicianId) throws SQLException {
         validateId(technicianId, "Technician ID");
 
         List<Incident> incidents = new ArrayList<>();
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(
-                                SELECT_BY_TECHNICIAN_SQL
-                        )
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_TECHNICIAN_SQL)) {
 
             statement.setLong(1, technicianId);
 
             try (ResultSet resultSet = statement.executeQuery()) {
-
                 while (resultSet.next()) {
                     incidents.add(mapRow(resultSet));
                 }
@@ -224,21 +188,14 @@ public final class IncidentDAO {
         return incidents;
     }
 
-    public long insert(Incident incident)
-            throws SQLException {
-
+    public long insert(Incident incident) throws SQLException {
         validateIncident(incident);
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(
-                                INSERT_SQL,
-                                Statement.RETURN_GENERATED_KEYS
-                        )
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     INSERT_SQL,
+                     Statement.RETURN_GENERATED_KEYS
+             )) {
 
             setIncidentParameters(statement, incident);
 
@@ -246,35 +203,25 @@ public final class IncidentDAO {
 
             if (affectedRows != 1) {
                 throw new SQLException(
-                        "Incident insertion failed. Affected rows: "
-                                + affectedRows
+                        "Incident insertion failed. Affected rows: " + affectedRows
                 );
             }
 
-            try (ResultSet generatedKeys =
-                         statement.getGeneratedKeys()) {
-
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-
-                    long generatedId =
-                            generatedKeys.getLong(1);
-
+                    long generatedId = generatedKeys.getLong(1);
                     incident.setId(generatedId);
-
                     return generatedId;
                 }
             }
 
             throw new SQLException(
-                    "Incident insertion succeeded, "
-                            + "but no generated ID was returned."
+                    "Incident insertion succeeded, but no generated ID was returned."
             );
         }
     }
 
-    public boolean update(Incident incident)
-            throws SQLException {
-
+    public boolean update(Incident incident) throws SQLException {
         validateIncident(incident);
 
         if (incident.getId() == null) {
@@ -283,20 +230,11 @@ public final class IncidentDAO {
             );
         }
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(UPDATE_SQL)
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)) {
 
             setIncidentParameters(statement, incident);
-
-            statement.setLong(
-                    12,
-                    incident.getId()
-            );
+            statement.setLong(12, incident.getId());
 
             return statement.executeUpdate() == 1;
         }
@@ -306,33 +244,17 @@ public final class IncidentDAO {
             long incidentId,
             Long technicianId
     ) throws SQLException {
-
         validateId(incidentId, "Incident ID");
 
         if (technicianId != null) {
             validateId(technicianId, "Technician ID");
         }
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(ASSIGN_TECHNICIAN_SQL)) {
 
-                PreparedStatement statement =
-                        connection.prepareStatement(
-                                ASSIGN_TECHNICIAN_SQL
-                        )
-        ) {
-
-            setNullableLong(
-                    statement,
-                    1,
-                    technicianId
-            );
-
-            statement.setLong(
-                    2,
-                    incidentId
-            );
+            setNullableLong(statement, 1, technicianId);
+            statement.setLong(2, incidentId);
 
             return statement.executeUpdate() == 1;
         }
@@ -343,7 +265,6 @@ public final class IncidentDAO {
             IncidentStatus newStatus,
             String solutionDescription
     ) throws SQLException {
-
         validateId(incidentId, "Incident ID");
 
         Objects.requireNonNull(
@@ -352,29 +273,17 @@ public final class IncidentDAO {
         );
 
         Incident incident = findById(incidentId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Incident was not found: "
-                                        + incidentId
-                        )
-                );
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Incident was not found: " + incidentId
+                ));
 
         LocalDateTime now = LocalDateTime.now();
-
-        LocalDateTime startedAt =
-                incident.getStartedAt();
-
-        LocalDateTime resolvedAt =
-                incident.getResolvedAt();
-
-        LocalDateTime closedAt =
-                incident.getClosedAt();
-
-        String finalSolutionDescription =
-                solutionDescription;
+        LocalDateTime startedAt = incident.getStartedAt();
+        LocalDateTime resolvedAt = incident.getResolvedAt();
+        LocalDateTime closedAt = incident.getClosedAt();
+        String finalSolutionDescription = solutionDescription;
 
         switch (newStatus) {
-
             case NEW -> {
                 startedAt = null;
                 resolvedAt = null;
@@ -424,151 +333,63 @@ public final class IncidentDAO {
             }
         }
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(UPDATE_STATUS_SQL)) {
 
-                PreparedStatement statement =
-                        connection.prepareStatement(
-                                UPDATE_STATUS_SQL
-                        )
-        ) {
-
-            statement.setString(
-                    1,
-                    newStatus.name()
-            );
-
-            setNullableDateTime(
-                    statement,
-                    2,
-                    startedAt
-            );
-
-            setNullableDateTime(
-                    statement,
-                    3,
-                    resolvedAt
-            );
-
-            setNullableDateTime(
-                    statement,
-                    4,
-                    closedAt
-            );
-
-            statement.setString(
-                    5,
-                    finalSolutionDescription
-            );
-
-            statement.setLong(
-                    6,
-                    incidentId
-            );
+            statement.setString(1, newStatus.name());
+            setNullableDateTime(statement, 2, startedAt);
+            setNullableDateTime(statement, 3, resolvedAt);
+            setNullableDateTime(statement, 4, closedAt);
+            statement.setString(5, finalSolutionDescription);
+            statement.setLong(6, incidentId);
 
             return statement.executeUpdate() == 1;
         }
     }
 
-    public boolean delete(long incidentId)
-            throws SQLException {
-
+    public boolean delete(long incidentId) throws SQLException {
         validateId(incidentId, "Incident ID");
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
 
-                PreparedStatement statement =
-                        connection.prepareStatement(DELETE_SQL)
-        ) {
-
-            statement.setLong(
-                    1,
-                    incidentId
-            );
+            statement.setLong(1, incidentId);
 
             return statement.executeUpdate() == 1;
         }
     }
 
-    private Incident mapRow(ResultSet resultSet)
-            throws SQLException {
-
+    private Incident mapRow(ResultSet resultSet) throws SQLException {
         Incident incident = new Incident();
 
-        incident.setId(
-                resultSet.getLong("id")
-        );
-
-        incident.setTitle(
-                resultSet.getString("title")
-        );
-
-        incident.setDescription(
-                resultSet.getString("description")
-        );
-
+        incident.setId(resultSet.getLong("id"));
+        incident.setTitle(resultSet.getString("title"));
+        incident.setDescription(resultSet.getString("description"));
         incident.setPriority(
-                IncidentPriority.valueOf(
-                        resultSet.getString("priority")
-                )
+                IncidentPriority.valueOf(resultSet.getString("priority"))
         );
-
         incident.setStatus(
-                IncidentStatus.valueOf(
-                        resultSet.getString("status")
-                )
+                IncidentStatus.valueOf(resultSet.getString("status"))
         );
-
-        incident.setEquipmentId(
-                resultSet.getLong("equipment_id")
-        );
-
-        incident.setCreatedById(
-                resultSet.getLong("created_by")
-        );
-
+        incident.setEquipmentId(resultSet.getLong("equipment_id"));
+        incident.setCreatedById(resultSet.getLong("created_by"));
         incident.setAssignedTechnicianId(
-                resultSet.getObject(
-                        "assigned_technician",
-                        Long.class
-                )
+                resultSet.getObject("assigned_technician", Long.class)
         );
-
         incident.setCreatedAt(
-                getNullableDateTime(
-                        resultSet,
-                        "created_at"
-                )
+                getNullableDateTime(resultSet, "created_at")
         );
-
         incident.setStartedAt(
-                getNullableDateTime(
-                        resultSet,
-                        "started_at"
-                )
+                getNullableDateTime(resultSet, "started_at")
         );
-
         incident.setResolvedAt(
-                getNullableDateTime(
-                        resultSet,
-                        "resolved_at"
-                )
+                getNullableDateTime(resultSet, "resolved_at")
         );
-
         incident.setClosedAt(
-                getNullableDateTime(
-                        resultSet,
-                        "closed_at"
-                )
+                getNullableDateTime(resultSet, "closed_at")
         );
-
         incident.setSolutionDescription(
-                resultSet.getString(
-                        "solution_description"
-                )
+                resultSet.getString("solution_description")
         );
 
         return incident;
@@ -578,83 +399,27 @@ public final class IncidentDAO {
             PreparedStatement statement,
             Incident incident
     ) throws SQLException {
-
-        statement.setString(
-                1,
-                incident.getTitle().trim()
-        );
-
-        statement.setString(
-                2,
-                incident.getDescription().trim()
-        );
-
-        statement.setString(
-                3,
-                incident.getPriority().name()
-        );
-
-        statement.setString(
-                4,
-                incident.getStatus().name()
-        );
-
-        statement.setLong(
-                5,
-                incident.getEquipmentId()
-        );
-
-        statement.setLong(
-                6,
-                incident.getCreatedById()
-        );
-
-        setNullableLong(
-                statement,
-                7,
-                incident.getAssignedTechnicianId()
-        );
-
-        setNullableDateTime(
-                statement,
-                8,
-                incident.getStartedAt()
-        );
-
-        setNullableDateTime(
-                statement,
-                9,
-                incident.getResolvedAt()
-        );
-
-        setNullableDateTime(
-                statement,
-                10,
-                incident.getClosedAt()
-        );
-
-        statement.setString(
-                11,
-                incident.getSolutionDescription()
-        );
+        statement.setString(1, incident.getTitle().trim());
+        statement.setString(2, incident.getDescription().trim());
+        statement.setString(3, incident.getPriority().name());
+        statement.setString(4, incident.getStatus().name());
+        statement.setLong(5, incident.getEquipmentId());
+        statement.setLong(6, incident.getCreatedById());
+        setNullableLong(statement, 7, incident.getAssignedTechnicianId());
+        setNullableDateTime(statement, 8, incident.getStartedAt());
+        setNullableDateTime(statement, 9, incident.getResolvedAt());
+        setNullableDateTime(statement, 10, incident.getClosedAt());
+        statement.setString(11, incident.getSolutionDescription());
     }
 
     private void validateIncident(Incident incident) {
-
         Objects.requireNonNull(
                 incident,
                 "Incident must not be null."
         );
 
-        requireText(
-                incident.getTitle(),
-                "Incident title"
-        );
-
-        requireText(
-                incident.getDescription(),
-                "Incident description"
-        );
+        requireText(incident.getTitle(), "Incident title");
+        requireText(incident.getDescription(), "Incident description");
 
         Objects.requireNonNull(
                 incident.getPriority(),
@@ -666,15 +431,8 @@ public final class IncidentDAO {
                 "Incident status must not be null."
         );
 
-        validateId(
-                incident.getEquipmentId(),
-                "Equipment ID"
-        );
-
-        validateId(
-                incident.getCreatedById(),
-                "Created-by user ID"
-        );
+        validateId(incident.getEquipmentId(), "Equipment ID");
+        validateId(incident.getCreatedById(), "Created-by user ID");
 
         if (incident.getAssignedTechnicianId() != null) {
             validateId(
@@ -684,11 +442,7 @@ public final class IncidentDAO {
         }
     }
 
-    private void validateId(
-            Long id,
-            String fieldName
-    ) {
-
+    private void validateId(Long id, String fieldName) {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException(
                     fieldName + " must be greater than zero."
@@ -696,11 +450,7 @@ public final class IncidentDAO {
         }
     }
 
-    private void requireText(
-            String value,
-            String fieldName
-    ) {
-
+    private void requireText(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(
                     fieldName + " must not be empty."
@@ -713,17 +463,10 @@ public final class IncidentDAO {
             int parameterIndex,
             Long value
     ) throws SQLException {
-
         if (value == null) {
-            statement.setNull(
-                    parameterIndex,
-                    Types.BIGINT
-            );
+            statement.setNull(parameterIndex, Types.BIGINT);
         } else {
-            statement.setLong(
-                    parameterIndex,
-                    value
-            );
+            statement.setLong(parameterIndex, value);
         }
     }
 
@@ -732,12 +475,8 @@ public final class IncidentDAO {
             int parameterIndex,
             LocalDateTime value
     ) throws SQLException {
-
         if (value == null) {
-            statement.setNull(
-                    parameterIndex,
-                    Types.TIMESTAMP
-            );
+            statement.setNull(parameterIndex, Types.TIMESTAMP);
         } else {
             statement.setTimestamp(
                     parameterIndex,
@@ -750,9 +489,7 @@ public final class IncidentDAO {
             ResultSet resultSet,
             String columnName
     ) throws SQLException {
-
-        Timestamp timestamp =
-                resultSet.getTimestamp(columnName);
+        Timestamp timestamp = resultSet.getTimestamp(columnName);
 
         if (timestamp == null) {
             return null;

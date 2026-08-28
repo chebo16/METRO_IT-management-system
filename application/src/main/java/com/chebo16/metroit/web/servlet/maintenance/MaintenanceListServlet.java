@@ -24,8 +24,7 @@ import java.util.Locale;
         name = "MaintenanceListServlet",
         urlPatterns = "/maintenance"
 )
-public final class MaintenanceListServlet
-        extends HttpServlet {
+public final class MaintenanceListServlet extends HttpServlet {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -42,43 +41,29 @@ public final class MaintenanceListServlet
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        HttpSession session =
-                request.getSession(false);
-
-        SessionUser sessionUser =
-                getSessionUser(
-                        session
-                );
+        HttpSession session = request.getSession(false);
+        SessionUser sessionUser = getSessionUser(session);
 
         if (sessionUser == null) {
-
             response.sendError(
                     HttpServletResponse.SC_UNAUTHORIZED,
                     "Authentication is required."
             );
-
             return;
         }
 
         try {
-
             List<MaintenanceRecord> records =
-                    loadRecords(
-                            sessionUser
-                    );
+                    loadRecords(sessionUser);
 
             String search =
                     normalizeParameter(
-                            request.getParameter(
-                                    "search"
-                            )
+                            request.getParameter("search")
                     );
 
             String result =
                     normalizeParameter(
-                            request.getParameter(
-                                    "result"
-                            )
+                            request.getParameter("result")
                     );
 
             List<MaintenanceRecord> filteredRecords =
@@ -88,83 +73,54 @@ public final class MaintenanceListServlet
                             result
                     );
 
-            long totalRecords =
-                    records.size();
+            long totalRecords = records.size();
 
-            long successfulRecords =
-                    countByResult(
-                            records,
-                            MaintenanceResult.SUCCESS
-                    );
-
-            long partiallyCompletedRecords =
-                    countByResult(
-                            records,
-                            MaintenanceResult.PARTIALLY_COMPLETED
-                    );
-
-            long failedRecords =
-                    countByResult(
-                            records,
-                            MaintenanceResult.FAILED
-                    );
-
-            request.setAttribute(
-                    "records",
-                    filteredRecords
+            long successfulRecords = countByResult(
+                    records,
+                    MaintenanceResult.SUCCESS
             );
 
-            request.setAttribute(
-                    "totalRecords",
-                    totalRecords
+            long partiallyCompletedRecords = countByResult(
+                    records,
+                    MaintenanceResult.PARTIALLY_COMPLETED
             );
 
+            long failedRecords = countByResult(
+                    records,
+                    MaintenanceResult.FAILED
+            );
+
+            request.setAttribute("records", filteredRecords);
+            request.setAttribute("totalRecords", totalRecords);
             request.setAttribute(
                     "successfulRecords",
                     successfulRecords
             );
-
             request.setAttribute(
                     "partiallyCompletedRecords",
                     partiallyCompletedRecords
             );
-
             request.setAttribute(
                     "failedRecords",
                     failedRecords
             );
-
-            request.setAttribute(
-                    "search",
-                    search
-            );
-
-            request.setAttribute(
-                    "selectedResult",
-                    result
-            );
-
+            request.setAttribute("search", search);
+            request.setAttribute("selectedResult", result);
             request.setAttribute(
                     "results",
                     MaintenanceResult.values()
             );
 
-            request.getRequestDispatcher(
-                    MAINTENANCE_LIST_VIEW
-            ).forward(
-                    request,
-                    response
-            );
+            request.getRequestDispatcher(MAINTENANCE_LIST_VIEW)
+                    .forward(request, response);
 
         } catch (ValidationException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_BAD_REQUEST,
                     exception.getMessage()
             );
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to load maintenance history.",
                     exception
@@ -180,17 +136,13 @@ public final class MaintenanceListServlet
     private List<MaintenanceRecord> loadRecords(
             SessionUser sessionUser
     ) {
-
         if (sessionUser.isAdmin()) {
-
-            return maintenanceRecordService
-                    .getAllRecords();
+            return maintenanceRecordService.getAllRecords();
         }
 
-        return maintenanceRecordService
-                .getRecordsByTechnician(
-                        sessionUser.getId()
-                );
+        return maintenanceRecordService.getRecordsByTechnician(
+                sessionUser.getId()
+        );
     }
 
     private List<MaintenanceRecord> applyFilters(
@@ -198,29 +150,19 @@ public final class MaintenanceListServlet
             String search,
             String result
     ) {
-
         List<MaintenanceRecord> filteredRecords =
                 new ArrayList<>();
 
         for (MaintenanceRecord record : records) {
-
-            if (!matchesSearch(
-                    record,
-                    search
-            )) {
+            if (!matchesSearch(record, search)) {
                 continue;
             }
 
-            if (!matchesResult(
-                    record,
-                    result
-            )) {
+            if (!matchesResult(record, result)) {
                 continue;
             }
 
-            filteredRecords.add(
-                    record
-            );
+            filteredRecords.add(record);
         }
 
         return filteredRecords;
@@ -230,63 +172,45 @@ public final class MaintenanceListServlet
             MaintenanceRecord record,
             String search
     ) {
-
         if (search.isEmpty()) {
             return true;
         }
 
         String normalizedSearch =
-                search.toLowerCase(
-                        Locale.ROOT
-                );
+                search.toLowerCase(Locale.ROOT);
 
         String workDescription =
                 record.getWorkDescription() == null
                         ? ""
                         : record.getWorkDescription()
-                        .toLowerCase(
-                                Locale.ROOT
-                        );
+                        .toLowerCase(Locale.ROOT);
 
         String replacedComponents =
                 record.getReplacedComponents() == null
                         ? ""
                         : record.getReplacedComponents()
-                        .toLowerCase(
-                                Locale.ROOT
-                        );
+                        .toLowerCase(Locale.ROOT);
 
         String incidentId =
                 record.getIncidentId() == null
                         ? ""
-                        : record.getIncidentId()
-                        .toString();
+                        : record.getIncidentId().toString();
 
         String equipmentId =
                 record.getEquipmentId() == null
                         ? ""
-                        : record.getEquipmentId()
-                        .toString();
+                        : record.getEquipmentId().toString();
 
-        return workDescription.contains(
-                normalizedSearch
-        )
-                || replacedComponents.contains(
-                normalizedSearch
-        )
-                || incidentId.contains(
-                normalizedSearch
-        )
-                || equipmentId.contains(
-                normalizedSearch
-        );
+        return workDescription.contains(normalizedSearch)
+                || replacedComponents.contains(normalizedSearch)
+                || incidentId.contains(normalizedSearch)
+                || equipmentId.contains(normalizedSearch);
     }
 
     private boolean matchesResult(
             MaintenanceRecord record,
             String result
     ) {
-
         if (result.isEmpty()) {
             return true;
         }
@@ -297,23 +221,17 @@ public final class MaintenanceListServlet
 
         return record.getResult()
                 .name()
-                .equalsIgnoreCase(
-                        result
-                );
+                .equalsIgnoreCase(result);
     }
 
     private long countByResult(
             List<MaintenanceRecord> records,
             MaintenanceResult result
     ) {
-
         long count = 0;
 
         for (MaintenanceRecord record : records) {
-
-            if (record.getResult()
-                    == result) {
-
+            if (record.getResult() == result) {
                 count++;
             }
         }
@@ -321,33 +239,23 @@ public final class MaintenanceListServlet
         return count;
     }
 
-    private SessionUser getSessionUser(
-            HttpSession session
-    ) {
-
+    private SessionUser getSessionUser(HttpSession session) {
         if (session == null) {
             return null;
         }
 
-        Object authenticatedUser =
-                session.getAttribute(
-                        SessionConstants.AUTHENTICATED_USER
-                );
+        Object authenticatedUser = session.getAttribute(
+                SessionConstants.AUTHENTICATED_USER
+        );
 
-        if (authenticatedUser
-                instanceof SessionUser) {
-
-            return (SessionUser)
-                    authenticatedUser;
+        if (authenticatedUser instanceof SessionUser sessionUser) {
+            return sessionUser;
         }
 
         return null;
     }
 
-    private String normalizeParameter(
-            String value
-    ) {
-
+    private String normalizeParameter(String value) {
         if (value == null) {
             return "";
         }

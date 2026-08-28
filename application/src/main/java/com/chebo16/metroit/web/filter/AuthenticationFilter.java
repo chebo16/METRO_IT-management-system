@@ -20,11 +20,8 @@ import java.io.IOException;
 )
 public final class AuthenticationFilter implements Filter {
 
-    private static final String LOGIN_PATH =
-            "/login";
-
-    private static final String LOGOUT_PATH =
-            "/logout";
+    private static final String LOGIN_PATH = "/login";
+    private static final String LOGOUT_PATH = "/logout";
 
     @Override
     public void doFilter(
@@ -39,70 +36,42 @@ public final class AuthenticationFilter implements Filter {
         HttpServletResponse response =
                 (HttpServletResponse) servletResponse;
 
-        String applicationPath =
-                getApplicationPath(request);
+        String applicationPath = getApplicationPath(request);
 
         if (isPublicResource(applicationPath)) {
-
-            filterChain.doFilter(
-                    request,
-                    response
-            );
-
+            filterChain.doFilter(request, response);
             return;
         }
 
-        HttpSession session =
-                request.getSession(false);
-
-        SessionUser sessionUser =
-                getAuthenticatedUser(session);
+        HttpSession session = request.getSession(false);
+        SessionUser sessionUser = getAuthenticatedUser(session);
 
         if (sessionUser != null) {
-
             preventProtectedPageCaching(response);
-
-            filterChain.doFilter(
-                    request,
-                    response
-            );
-
+            filterChain.doFilter(request, response);
             return;
         }
 
         saveOriginalRequest(request);
 
         String loginUrl =
-                request.getContextPath()
-                        + LOGIN_PATH;
+                request.getContextPath() + LOGIN_PATH;
 
         response.sendRedirect(
                 response.encodeRedirectURL(loginUrl)
         );
     }
 
-    private String getApplicationPath(
-            HttpServletRequest request
-    ) {
+    private String getApplicationPath(HttpServletRequest request) {
+        String requestUri = request.getRequestURI();
+        String contextPath = request.getContextPath();
 
-        String requestUri =
-                request.getRequestURI();
-
-        String contextPath =
-                request.getContextPath();
-
-        return requestUri.substring(
-                contextPath.length()
-        );
+        return requestUri.substring(contextPath.length());
     }
 
-    private boolean isPublicResource(
-            String applicationPath
-    ) {
-
+    private boolean isPublicResource(String applicationPath) {
         if (applicationPath.equals(LOGIN_PATH)
                 || applicationPath.equals(LOGOUT_PATH)) {
-
             return true;
         }
 
@@ -113,10 +82,7 @@ public final class AuthenticationFilter implements Filter {
                 || applicationPath.equals("/favicon.ico");
     }
 
-    private SessionUser getAuthenticatedUser(
-            HttpSession session
-    ) {
-
+    private SessionUser getAuthenticatedUser(HttpSession session) {
         if (session == null) {
             return null;
         }
@@ -133,22 +99,12 @@ public final class AuthenticationFilter implements Filter {
         return null;
     }
 
-    private void saveOriginalRequest(
-            HttpServletRequest request
-    ) {
-
-        /*
-         * Only GET requests are saved because redirecting
-         * back to a POST request would lose its request body.
-         */
-        if (!"GET".equalsIgnoreCase(
-                request.getMethod()
-        )) {
+    private void saveOriginalRequest(HttpServletRequest request) {
+        if (!"GET".equalsIgnoreCase(request.getMethod())) {
             return;
         }
 
-        HttpSession session =
-                request.getSession(true);
+        HttpSession session = request.getSession(true);
 
         Object existingTarget =
                 session.getAttribute(
@@ -159,19 +115,12 @@ public final class AuthenticationFilter implements Filter {
             return;
         }
 
-        String originalRequestUri =
-                request.getRequestURI();
+        String originalRequestUri = request.getRequestURI();
+        String queryString = request.getQueryString();
 
-        String queryString =
-                request.getQueryString();
-
-        if (queryString != null
-                && !queryString.isBlank()) {
-
+        if (queryString != null && !queryString.isBlank()) {
             originalRequestUri =
-                    originalRequestUri
-                            + "?"
-                            + queryString;
+                    originalRequestUri + "?" + queryString;
         }
 
         session.setAttribute(
@@ -183,20 +132,12 @@ public final class AuthenticationFilter implements Filter {
     private void preventProtectedPageCaching(
             HttpServletResponse response
     ) {
-
         response.setHeader(
                 "Cache-Control",
                 "no-cache, no-store, must-revalidate"
         );
 
-        response.setHeader(
-                "Pragma",
-                "no-cache"
-        );
-
-        response.setDateHeader(
-                "Expires",
-                0
-        );
+        response.setHeader("Pragma", "no-cache");
+        response.setDateHeader("Expires", 0);
     }
 }

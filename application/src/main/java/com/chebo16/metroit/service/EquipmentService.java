@@ -27,10 +27,8 @@ public final class EquipmentService {
     }
 
     public List<Equipment> getAllEquipment() {
-
         try {
             return equipmentDAO.findAll();
-
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to load equipment.",
@@ -40,29 +38,22 @@ public final class EquipmentService {
     }
 
     public Equipment getEquipmentById(long equipmentId) {
-
         validateId(equipmentId);
 
         try {
             return equipmentDAO.findById(equipmentId)
-                    .orElseThrow(() ->
-                            new NotFoundException(
-                                    "Equipment was not found: "
-                                            + equipmentId
-                            )
-                    );
-
+                    .orElseThrow(() -> new NotFoundException(
+                            "Equipment was not found: " + equipmentId
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to load equipment with ID: "
-                            + equipmentId,
+                    "Failed to load equipment with ID: " + equipmentId,
                     exception
             );
         }
     }
 
     public Equipment createEquipment(Equipment equipment) {
-
         Objects.requireNonNull(
                 equipment,
                 "Equipment must not be null."
@@ -78,17 +69,12 @@ public final class EquipmentService {
         validateUniqueFields(equipment, null);
 
         try {
-            long generatedId =
-                    equipmentDAO.insert(equipment);
+            long generatedId = equipmentDAO.insert(equipment);
 
             return equipmentDAO.findById(generatedId)
-                    .orElseThrow(() ->
-                            new ServiceException(
-                                    "Equipment was created, "
-                                            + "but could not be reloaded."
-                            )
-                    );
-
+                    .orElseThrow(() -> new ServiceException(
+                            "Equipment was created, but could not be reloaded."
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to create equipment.",
@@ -98,7 +84,6 @@ public final class EquipmentService {
     }
 
     public Equipment updateEquipment(Equipment equipment) {
-
         Objects.requireNonNull(
                 equipment,
                 "Equipment must not be null."
@@ -111,37 +96,25 @@ public final class EquipmentService {
         }
 
         validateId(equipment.getId());
-
-        // Confirms that the record exists before updating.
         getEquipmentById(equipment.getId());
 
         normalizeEquipment(equipment);
         validateEquipment(equipment);
-
-        validateUniqueFields(
-                equipment,
-                equipment.getId()
-        );
+        validateUniqueFields(equipment, equipment.getId());
 
         try {
-            boolean updated =
-                    equipmentDAO.update(equipment);
+            boolean updated = equipmentDAO.update(equipment);
 
             if (!updated) {
                 throw new NotFoundException(
-                        "Equipment was not found: "
-                                + equipment.getId()
+                        "Equipment was not found: " + equipment.getId()
                 );
             }
 
             return equipmentDAO.findById(equipment.getId())
-                    .orElseThrow(() ->
-                            new ServiceException(
-                                    "Equipment was updated, "
-                                            + "but could not be reloaded."
-                            )
-                    );
-
+                    .orElseThrow(() -> new ServiceException(
+                            "Equipment was updated, but could not be reloaded."
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to update equipment with ID: "
@@ -155,24 +128,18 @@ public final class EquipmentService {
             long equipmentId,
             EquipmentStatus newStatus
     ) {
-
         Objects.requireNonNull(
                 newStatus,
                 "Equipment status must not be null."
         );
 
-        Equipment equipment =
-                getEquipmentById(equipmentId);
-
+        Equipment equipment = getEquipmentById(equipmentId);
         equipment.setStatus(newStatus);
 
         return updateEquipment(equipment);
     }
 
-    public Equipment decommissionEquipment(
-            long equipmentId
-    ) {
-
+    public Equipment decommissionEquipment(long equipmentId) {
         return changeStatus(
                 equipmentId,
                 EquipmentStatus.DECOMMISSIONED
@@ -183,13 +150,10 @@ public final class EquipmentService {
             Equipment equipment,
             Long currentEquipmentId
     ) {
-
         List<Equipment> existingEquipment;
 
         try {
-            existingEquipment =
-                    equipmentDAO.findAll();
-
+            existingEquipment = equipmentDAO.findAll();
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to validate equipment uniqueness.",
@@ -198,50 +162,35 @@ public final class EquipmentService {
         }
 
         for (Equipment existing : existingEquipment) {
-
             if (currentEquipmentId != null
-                    && currentEquipmentId.equals(
-                    existing.getId()
-            )) {
+                    && currentEquipmentId.equals(existing.getId())) {
                 continue;
             }
 
-            if (equipment.getInventoryNumber()
-                    .equalsIgnoreCase(
-                            existing.getInventoryNumber()
-                    )) {
-
+            if (equipment.getInventoryNumber().equalsIgnoreCase(
+                    existing.getInventoryNumber()
+            )) {
                 throw new ValidationException(
                         "Inventory number already exists: "
-                                + equipment
-                                .getInventoryNumber()
+                                + equipment.getInventoryNumber()
                 );
             }
 
-            String serialNumber =
-                    equipment.getSerialNumber();
-
-            String existingSerialNumber =
-                    existing.getSerialNumber();
+            String serialNumber = equipment.getSerialNumber();
+            String existingSerialNumber = existing.getSerialNumber();
 
             if (serialNumber != null
                     && existingSerialNumber != null
-                    && serialNumber.equalsIgnoreCase(
-                    existingSerialNumber
-            )) {
+                    && serialNumber.equalsIgnoreCase(existingSerialNumber)) {
 
                 throw new ValidationException(
-                        "Serial number already exists: "
-                                + serialNumber
+                        "Serial number already exists: " + serialNumber
                 );
             }
         }
     }
 
-    private void validateEquipment(
-            Equipment equipment
-    ) {
-
+    private void validateEquipment(Equipment equipment) {
         requireText(
                 equipment.getInventoryNumber(),
                 "Inventory number"
@@ -305,61 +254,41 @@ public final class EquipmentService {
         );
     }
 
-    private void normalizeEquipment(
-            Equipment equipment
-    ) {
-
+    private void normalizeEquipment(Equipment equipment) {
         equipment.setInventoryNumber(
-                trimRequired(
-                        equipment.getInventoryNumber()
-                )
+                trimRequired(equipment.getInventoryNumber())
         );
 
         equipment.setName(
-                trimRequired(
-                        equipment.getName()
-                )
+                trimRequired(equipment.getName())
         );
 
         equipment.setType(
-                trimRequired(
-                        equipment.getType()
-                )
+                trimRequired(equipment.getType())
         );
 
         equipment.setManufacturer(
-                trimToNull(
-                        equipment.getManufacturer()
-                )
+                trimToNull(equipment.getManufacturer())
         );
 
         equipment.setModel(
-                trimToNull(
-                        equipment.getModel()
-                )
+                trimToNull(equipment.getModel())
         );
 
         equipment.setSerialNumber(
-                trimToNull(
-                        equipment.getSerialNumber()
-                )
+                trimToNull(equipment.getSerialNumber())
         );
 
         equipment.setIpAddress(
-                trimToNull(
-                        equipment.getIpAddress()
-                )
+                trimToNull(equipment.getIpAddress())
         );
 
         equipment.setNotes(
-                trimToNull(
-                        equipment.getNotes()
-                )
+                trimToNull(equipment.getNotes())
         );
     }
 
     private void validateId(long equipmentId) {
-
         if (equipmentId <= 0) {
             throw new ValidationException(
                     "Equipment ID must be greater than zero."
@@ -367,11 +296,7 @@ public final class EquipmentService {
         }
     }
 
-    private void requireText(
-            String value,
-            String fieldName
-    ) {
-
+    private void requireText(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new ValidationException(
                     fieldName + " must not be empty."
@@ -384,10 +309,7 @@ public final class EquipmentService {
             int maximumLength,
             String fieldName
     ) {
-
-        if (value != null
-                && value.length() > maximumLength) {
-
+        if (value != null && value.length() > maximumLength) {
             throw new ValidationException(
                     fieldName
                             + " must not exceed "
@@ -398,7 +320,6 @@ public final class EquipmentService {
     }
 
     private String trimRequired(String value) {
-
         if (value == null) {
             return null;
         }
@@ -407,7 +328,6 @@ public final class EquipmentService {
     }
 
     private String trimToNull(String value) {
-
         if (value == null) {
             return null;
         }

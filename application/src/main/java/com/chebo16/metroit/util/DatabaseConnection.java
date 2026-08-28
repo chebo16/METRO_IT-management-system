@@ -32,20 +32,11 @@ public final class DatabaseConnection {
 
             properties.load(inputStream);
 
-            String driver = getRequiredProperty(
-                    properties,
-                    "db.driver"
-            );
+            String driver = getRequiredProperty(properties, "db.driver");
 
             URL = getRequiredProperty(properties, "db.url");
-            USERNAME = getRequiredProperty(
-                    properties,
-                    "db.username"
-            );
-            PASSWORD = getRequiredProperty(
-                    properties,
-                    "db.password"
-            );
+            USERNAME = getRequiredProperty(properties, "db.username");
+            PASSWORD = getRequiredProperty(properties, "db.password");
 
             Class.forName(driver);
 
@@ -55,15 +46,10 @@ public final class DatabaseConnection {
     }
 
     private DatabaseConnection() {
-        // Utility class: object creation is not allowed.
     }
 
     public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(
-                URL,
-                USERNAME,
-                PASSWORD
-        );
+        return DriverManager.getConnection(URL, USERNAME, PASSWORD);
     }
 
     private static String getRequiredProperty(
@@ -74,8 +60,7 @@ public final class DatabaseConnection {
 
         if (value == null || value.isBlank()) {
             throw new IllegalStateException(
-                    "Required database property is missing: "
-                            + propertyName
+                    "Required database property is missing: " + propertyName
             );
         }
 

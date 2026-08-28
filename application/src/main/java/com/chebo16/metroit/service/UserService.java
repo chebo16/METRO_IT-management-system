@@ -13,12 +13,11 @@ import java.util.regex.Pattern;
 
 public final class UserService {
 
-    private static final Pattern EMAIL_PATTERN =
-            Pattern.compile(
-                    "^[A-Za-z0-9._%+-]+"
-                            + "@[A-Za-z0-9.-]+"
-                            + "\\.[A-Za-z]{2,}$"
-            );
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(
+            "^[A-Za-z0-9._%+-]+"
+                    + "@[A-Za-z0-9.-]+"
+                    + "\\.[A-Za-z]{2,}$"
+    );
 
     private final UserDAO userDAO;
 
@@ -34,10 +33,8 @@ public final class UserService {
     }
 
     public List<User> getAllUsers() {
-
         try {
             return userDAO.findAll();
-
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to load users.",
@@ -47,44 +44,31 @@ public final class UserService {
     }
 
     public User getUserById(long userId) {
-
         validateId(userId);
 
         try {
             return userDAO.findById(userId)
-                    .orElseThrow(() ->
-                            new NotFoundException(
-                                    "User was not found: "
-                                            + userId
-                            )
-                    );
-
+                    .orElseThrow(() -> new NotFoundException(
+                            "User was not found: " + userId
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to load user with ID: "
-                            + userId,
+                    "Failed to load user with ID: " + userId,
                     exception
             );
         }
     }
 
     public User getUserByUsername(String username) {
-
         requireText(username, "Username");
 
-        String normalizedUsername =
-                username.trim();
+        String normalizedUsername = username.trim();
 
         try {
-            return userDAO
-                    .findByUsername(normalizedUsername)
-                    .orElseThrow(() ->
-                            new NotFoundException(
-                                    "User was not found: "
-                                            + normalizedUsername
-                            )
-                    );
-
+            return userDAO.findByUsername(normalizedUsername)
+                    .orElseThrow(() -> new NotFoundException(
+                            "User was not found: " + normalizedUsername
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to load user by username: "
@@ -95,7 +79,6 @@ public final class UserService {
     }
 
     public User createUser(User user) {
-
         Objects.requireNonNull(
                 user,
                 "User must not be null."
@@ -106,17 +89,12 @@ public final class UserService {
         validateUniqueFields(user, null);
 
         try {
-            long generatedId =
-                    userDAO.insert(user);
+            long generatedId = userDAO.insert(user);
 
             return userDAO.findById(generatedId)
-                    .orElseThrow(() ->
-                            new ServiceException(
-                                    "User was created, "
-                                            + "but could not be reloaded."
-                            )
-                    );
-
+                    .orElseThrow(() -> new ServiceException(
+                            "User was created, but could not be reloaded."
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to create user.",
@@ -126,7 +104,6 @@ public final class UserService {
     }
 
     public User updateUser(User user) {
-
         Objects.requireNonNull(
                 user,
                 "User must not be null."
@@ -139,37 +116,25 @@ public final class UserService {
         }
 
         validateId(user.getId());
-
-        // Confirms that the user exists.
         getUserById(user.getId());
 
         normalizeUser(user);
         validateUser(user);
-
-        validateUniqueFields(
-                user,
-                user.getId()
-        );
+        validateUniqueFields(user, user.getId());
 
         try {
-            boolean updated =
-                    userDAO.update(user);
+            boolean updated = userDAO.update(user);
 
             if (!updated) {
                 throw new NotFoundException(
-                        "User was not found: "
-                                + user.getId()
+                        "User was not found: " + user.getId()
                 );
             }
 
             return userDAO.findById(user.getId())
-                    .orElseThrow(() ->
-                            new ServiceException(
-                                    "User was updated, "
-                                            + "but could not be reloaded."
-                            )
-                    );
-
+                    .orElseThrow(() -> new ServiceException(
+                            "User was updated, but could not be reloaded."
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to update user with ID: "
@@ -183,39 +148,29 @@ public final class UserService {
             long userId,
             boolean active
     ) {
-
         validateId(userId);
-
-        // Confirms that the user exists.
         getUserById(userId);
 
         try {
-            boolean updated =
-                    userDAO.setActive(
-                            userId,
-                            active
-                    );
+            boolean updated = userDAO.setActive(
+                    userId,
+                    active
+            );
 
             if (!updated) {
                 throw new NotFoundException(
-                        "User was not found: "
-                                + userId
+                        "User was not found: " + userId
                 );
             }
 
             return userDAO.findById(userId)
-                    .orElseThrow(() ->
-                            new ServiceException(
-                                    "User status was updated, "
-                                            + "but the user could not "
-                                            + "be reloaded."
-                            )
-                    );
-
+                    .orElseThrow(() -> new ServiceException(
+                            "User status was updated, "
+                                    + "but the user could not be reloaded."
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to change active status "
-                            + "for user ID: "
+                    "Failed to change active status for user ID: "
                             + userId,
                     exception
             );
@@ -223,32 +178,21 @@ public final class UserService {
     }
 
     public User activateUser(long userId) {
-
-        return changeActiveStatus(
-                userId,
-                true
-        );
+        return changeActiveStatus(userId, true);
     }
 
     public User deactivateUser(long userId) {
-
-        return changeActiveStatus(
-                userId,
-                false
-        );
+        return changeActiveStatus(userId, false);
     }
 
     private void validateUniqueFields(
             User user,
             Long currentUserId
     ) {
-
         List<User> existingUsers;
 
         try {
-            existingUsers =
-                    userDAO.findAll();
-
+            existingUsers = userDAO.findAll();
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to validate user uniqueness.",
@@ -257,18 +201,14 @@ public final class UserService {
         }
 
         for (User existingUser : existingUsers) {
-
             if (currentUserId != null
-                    && currentUserId.equals(
-                    existingUser.getId()
-            )) {
+                    && currentUserId.equals(existingUser.getId())) {
                 continue;
             }
 
             if (user.getUsername().equalsIgnoreCase(
                     existingUser.getUsername()
             )) {
-
                 throw new ValidationException(
                         "Username already exists: "
                                 + user.getUsername()
@@ -278,7 +218,6 @@ public final class UserService {
             if (user.getEmail().equalsIgnoreCase(
                     existingUser.getEmail()
             )) {
-
                 throw new ValidationException(
                         "Email already exists: "
                                 + user.getEmail()
@@ -288,26 +227,10 @@ public final class UserService {
     }
 
     private void validateUser(User user) {
-
-        requireText(
-                user.getUsername(),
-                "Username"
-        );
-
-        requireText(
-                user.getPasswordHash(),
-                "Password hash"
-        );
-
-        requireText(
-                user.getFullName(),
-                "Full name"
-        );
-
-        requireText(
-                user.getEmail(),
-                "Email"
-        );
+        requireText(user.getUsername(), "Username");
+        requireText(user.getPasswordHash(), "Password hash");
+        requireText(user.getFullName(), "Full name");
+        requireText(user.getEmail(), "Email");
 
         Objects.requireNonNull(
                 user.getRole(),
@@ -338,46 +261,32 @@ public final class UserService {
                 "Email"
         );
 
-        if (!EMAIL_PATTERN
-                .matcher(user.getEmail())
-                .matches()) {
-
+        if (!EMAIL_PATTERN.matcher(user.getEmail()).matches()) {
             throw new ValidationException(
-                    "Invalid email address: "
-                            + user.getEmail()
+                    "Invalid email address: " + user.getEmail()
             );
         }
     }
 
     private void normalizeUser(User user) {
-
         user.setUsername(
-                trimRequired(
-                        user.getUsername()
-                )
+                trimRequired(user.getUsername())
         );
 
         user.setPasswordHash(
-                trimRequired(
-                        user.getPasswordHash()
-                )
+                trimRequired(user.getPasswordHash())
         );
 
         user.setFullName(
-                trimRequired(
-                        user.getFullName()
-                )
+                trimRequired(user.getFullName())
         );
 
         user.setEmail(
-                trimRequired(
-                        user.getEmail()
-                )
+                trimRequired(user.getEmail())
         );
     }
 
     private void validateId(long userId) {
-
         if (userId <= 0) {
             throw new ValidationException(
                     "User ID must be greater than zero."
@@ -385,11 +294,7 @@ public final class UserService {
         }
     }
 
-    private void requireText(
-            String value,
-            String fieldName
-    ) {
-
+    private void requireText(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new ValidationException(
                     fieldName + " must not be empty."
@@ -402,10 +307,7 @@ public final class UserService {
             int maximumLength,
             String fieldName
     ) {
-
-        if (value != null
-                && value.length() > maximumLength) {
-
+        if (value != null && value.length() > maximumLength) {
             throw new ValidationException(
                     fieldName
                             + " must not exceed "
@@ -416,7 +318,6 @@ public final class UserService {
     }
 
     private String trimRequired(String value) {
-
         if (value == null) {
             return null;
         }

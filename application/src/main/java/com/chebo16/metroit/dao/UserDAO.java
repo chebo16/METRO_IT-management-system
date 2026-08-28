@@ -90,19 +90,11 @@ public final class UserDAO {
             """;
 
     public List<User> findAll() throws SQLException {
-
         List<User> users = new ArrayList<>();
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(SELECT_ALL_SQL);
-
-                ResultSet resultSet =
-                        statement.executeQuery()
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_ALL_SQL);
+             ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
                 users.add(mapRow(resultSet));
@@ -113,19 +105,12 @@ public final class UserDAO {
     }
 
     public Optional<User> findById(long id) throws SQLException {
-
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(SELECT_BY_ID_SQL)
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID_SQL)) {
 
             statement.setLong(1, id);
 
             try (ResultSet resultSet = statement.executeQuery()) {
-
                 if (resultSet.next()) {
                     return Optional.of(mapRow(resultSet));
                 }
@@ -140,20 +125,12 @@ public final class UserDAO {
 
         requireText(username, "Username");
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(
-                                SELECT_BY_USERNAME_SQL
-                        )
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_USERNAME_SQL)) {
 
             statement.setString(1, username.trim());
 
             try (ResultSet resultSet = statement.executeQuery()) {
-
                 if (resultSet.next()) {
                     return Optional.of(mapRow(resultSet));
                 }
@@ -164,19 +141,13 @@ public final class UserDAO {
     }
 
     public long insert(User user) throws SQLException {
-
         validateUser(user);
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(
-                                INSERT_SQL,
-                                Statement.RETURN_GENERATED_KEYS
-                        )
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     INSERT_SQL,
+                     Statement.RETURN_GENERATED_KEYS
+             )) {
 
             setUserParameters(statement, user);
 
@@ -184,32 +155,25 @@ public final class UserDAO {
 
             if (affectedRows != 1) {
                 throw new SQLException(
-                        "User insertion failed. Affected rows: "
-                                + affectedRows
+                        "User insertion failed. Affected rows: " + affectedRows
                 );
             }
 
-            try (ResultSet generatedKeys =
-                         statement.getGeneratedKeys()) {
-
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-
                     long generatedId = generatedKeys.getLong(1);
                     user.setId(generatedId);
-
                     return generatedId;
                 }
             }
 
             throw new SQLException(
-                    "User insertion succeeded, "
-                            + "but no generated ID was returned."
+                    "User insertion succeeded, but no generated ID was returned."
             );
         }
     }
 
     public boolean update(User user) throws SQLException {
-
         validateUser(user);
 
         if (user.getId() == null) {
@@ -218,13 +182,8 @@ public final class UserDAO {
             );
         }
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(UPDATE_SQL)
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)) {
 
             setUserParameters(statement, user);
             statement.setLong(7, user.getId());
@@ -236,13 +195,8 @@ public final class UserDAO {
     public boolean setActive(long userId, boolean active)
             throws SQLException {
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(SET_ACTIVE_SQL)
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SET_ACTIVE_SQL)) {
 
             statement.setBoolean(1, active);
             statement.setLong(2, userId);
@@ -251,48 +205,23 @@ public final class UserDAO {
         }
     }
 
-    private User mapRow(ResultSet resultSet)
-            throws SQLException {
-
+    private User mapRow(ResultSet resultSet) throws SQLException {
         User user = new User();
 
-        user.setId(
-                resultSet.getLong("id")
-        );
-
-        user.setUsername(
-                resultSet.getString("username")
-        );
-
-        user.setPasswordHash(
-                resultSet.getString("password_hash")
-        );
-
-        user.setFullName(
-                resultSet.getString("full_name")
-        );
-
-        user.setEmail(
-                resultSet.getString("email")
-        );
-
+        user.setId(resultSet.getLong("id"));
+        user.setUsername(resultSet.getString("username"));
+        user.setPasswordHash(resultSet.getString("password_hash"));
+        user.setFullName(resultSet.getString("full_name"));
+        user.setEmail(resultSet.getString("email"));
         user.setRole(
-                UserRole.valueOf(
-                        resultSet.getString("role")
-                )
+                UserRole.valueOf(resultSet.getString("role"))
         );
+        user.setActive(resultSet.getBoolean("active"));
 
-        user.setActive(
-                resultSet.getBoolean("active")
-        );
-
-        Timestamp createdAt =
-                resultSet.getTimestamp("created_at");
+        Timestamp createdAt = resultSet.getTimestamp("created_at");
 
         if (createdAt != null) {
-            user.setCreatedAt(
-                    createdAt.toLocalDateTime()
-            );
+            user.setCreatedAt(createdAt.toLocalDateTime());
         }
 
         return user;
@@ -303,63 +232,24 @@ public final class UserDAO {
             User user
     ) throws SQLException {
 
-        statement.setString(
-                1,
-                user.getUsername().trim()
-        );
-
-        statement.setString(
-                2,
-                user.getPasswordHash()
-        );
-
-        statement.setString(
-                3,
-                user.getFullName().trim()
-        );
-
-        statement.setString(
-                4,
-                user.getEmail().trim()
-        );
-
-        statement.setString(
-                5,
-                user.getRole().name()
-        );
-
-        statement.setBoolean(
-                6,
-                user.isActive()
-        );
+        statement.setString(1, user.getUsername().trim());
+        statement.setString(2, user.getPasswordHash());
+        statement.setString(3, user.getFullName().trim());
+        statement.setString(4, user.getEmail().trim());
+        statement.setString(5, user.getRole().name());
+        statement.setBoolean(6, user.isActive());
     }
 
     private void validateUser(User user) {
-
         Objects.requireNonNull(
                 user,
                 "User must not be null."
         );
 
-        requireText(
-                user.getUsername(),
-                "Username"
-        );
-
-        requireText(
-                user.getPasswordHash(),
-                "Password hash"
-        );
-
-        requireText(
-                user.getFullName(),
-                "Full name"
-        );
-
-        requireText(
-                user.getEmail(),
-                "Email"
-        );
+        requireText(user.getUsername(), "Username");
+        requireText(user.getPasswordHash(), "Password hash");
+        requireText(user.getFullName(), "Full name");
+        requireText(user.getEmail(), "Email");
 
         Objects.requireNonNull(
                 user.getRole(),
@@ -367,11 +257,7 @@ public final class UserDAO {
         );
     }
 
-    private void requireText(
-            String value,
-            String fieldName
-    ) {
-
+    private void requireText(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(
                     fieldName + " must not be empty."

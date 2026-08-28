@@ -26,14 +26,10 @@ public final class LoginServlet extends HttpServlet {
     private static final String LOGIN_VIEW =
             "/WEB-INF/views/auth/login.jsp";
 
-    private static final String ERROR_MESSAGE_ATTRIBUTE =
-            "errorMessage";
+    private static final String ERROR_MESSAGE_ATTRIBUTE = "errorMessage";
+    private static final String USERNAME_ATTRIBUTE = "username";
 
-    private static final String USERNAME_ATTRIBUTE =
-            "username";
-
-    private final AuthService authService =
-            new AuthService();
+    private final AuthService authService = new AuthService();
 
     @Override
     protected void doGet(
@@ -41,8 +37,7 @@ public final class LoginServlet extends HttpServlet {
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        HttpSession session =
-                request.getSession(false);
+        HttpSession session = request.getSession(false);
 
         if (isAuthenticated(session)) {
             redirectToHome(request, response);
@@ -58,50 +53,34 @@ public final class LoginServlet extends HttpServlet {
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        request.setCharacterEncoding(
-                StandardCharsets.UTF_8.name()
-        );
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        String username =
-                request.getParameter("username");
-
-        String rawPassword =
-                request.getParameter("password");
+        String username = request.getParameter("username");
+        String rawPassword = request.getParameter("password");
 
         try {
-            User authenticatedUser =
-                    authService.authenticate(
-                            username,
-                            rawPassword
-                    );
+            User authenticatedUser = authService.authenticate(
+                    username,
+                    rawPassword
+            );
 
             SessionUser sessionUser =
-                    SessionUser.fromUser(
-                            authenticatedUser
-                    );
+                    SessionUser.fromUser(authenticatedUser);
 
             HttpSession previousSession =
                     request.getSession(false);
 
             String originalRequestUri =
-                    extractOriginalRequestUri(
-                            previousSession
-                    );
+                    extractOriginalRequestUri(previousSession);
 
-            /*
-             * The previous session is invalidated after login
-             * to protect the application from session fixation.
-             */
             if (previousSession != null) {
                 previousSession.invalidate();
             }
 
-            HttpSession newSession =
-                    request.getSession(true);
+            HttpSession newSession = request.getSession(true);
 
             newSession.setMaxInactiveInterval(
-                    SessionConstants
-                            .SESSION_TIMEOUT_SECONDS
+                    SessionConstants.SESSION_TIMEOUT_SECONDS
             );
 
             newSession.setAttribute(
@@ -109,20 +88,16 @@ public final class LoginServlet extends HttpServlet {
                     sessionUser
             );
 
-            String redirectTarget =
-                    resolveRedirectTarget(
-                            request,
-                            originalRequestUri
-                    );
+            String redirectTarget = resolveRedirectTarget(
+                    request,
+                    originalRequestUri
+            );
 
             response.sendRedirect(
-                    response.encodeRedirectURL(
-                            redirectTarget
-                    )
+                    response.encodeRedirectURL(redirectTarget)
             );
 
         } catch (ValidationException exception) {
-
             request.setAttribute(
                     ERROR_MESSAGE_ATTRIBUTE,
                     exception.getMessage()
@@ -136,7 +111,6 @@ public final class LoginServlet extends HttpServlet {
             forwardToLogin(request, response);
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Authentication service error.",
                     exception
@@ -157,10 +131,7 @@ public final class LoginServlet extends HttpServlet {
         }
     }
 
-    private boolean isAuthenticated(
-            HttpSession session
-    ) {
-
+    private boolean isAuthenticated(HttpSession session) {
         if (session == null) {
             return false;
         }
@@ -170,19 +141,14 @@ public final class LoginServlet extends HttpServlet {
         ) instanceof SessionUser;
     }
 
-    private String extractOriginalRequestUri(
-            HttpSession session
-    ) {
-
+    private String extractOriginalRequestUri(HttpSession session) {
         if (session == null) {
             return null;
         }
 
-        Object value =
-                session.getAttribute(
-                        SessionConstants
-                                .ORIGINAL_REQUEST_URI
-                );
+        Object value = session.getAttribute(
+                SessionConstants.ORIGINAL_REQUEST_URI
+        );
 
         if (value instanceof String requestUri) {
             return requestUri;
@@ -195,11 +161,7 @@ public final class LoginServlet extends HttpServlet {
             HttpServletRequest request,
             String originalRequestUri
     ) {
-
-        if (isSafeInternalTarget(
-                request,
-                originalRequestUri
-        )) {
+        if (isSafeInternalTarget(request, originalRequestUri)) {
             return originalRequestUri;
         }
 
@@ -210,18 +172,15 @@ public final class LoginServlet extends HttpServlet {
             HttpServletRequest request,
             String target
     ) {
-
         if (target == null || target.isBlank()) {
             return false;
         }
 
-        if (target.contains("\r")
-                || target.contains("\n")) {
+        if (target.contains("\r") || target.contains("\n")) {
             return false;
         }
 
-        String contextPath =
-                request.getContextPath();
+        String contextPath = request.getContextPath();
 
         String requiredPrefix =
                 contextPath.isEmpty()
@@ -232,16 +191,12 @@ public final class LoginServlet extends HttpServlet {
             return false;
         }
 
-        if (contextPath.isEmpty()
-                && target.startsWith("//")) {
+        if (contextPath.isEmpty() && target.startsWith("//")) {
             return false;
         }
 
-        String loginPath =
-                contextPath + "/login";
-
-        String logoutPath =
-                contextPath + "/logout";
+        String loginPath = contextPath + "/login";
+        String logoutPath = contextPath + "/logout";
 
         return !target.equals(loginPath)
                 && !target.startsWith(loginPath + "?")
@@ -249,10 +204,7 @@ public final class LoginServlet extends HttpServlet {
                 && !target.startsWith(logoutPath + "?");
     }
 
-    private String normalizeUsernameForView(
-            String username
-    ) {
-
+    private String normalizeUsernameForView(String username) {
         if (username == null) {
             return "";
         }

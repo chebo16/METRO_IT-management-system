@@ -32,17 +32,13 @@ public final class AuthService {
             String username,
             String rawPassword
     ) {
-
-        String normalizedUsername =
-                normalizeUsername(username);
+        String normalizedUsername = normalizeUsername(username);
 
         validatePassword(rawPassword);
 
         try {
             Optional<User> userOptional =
-                    userDAO.findByUsername(
-                            normalizedUsername
-                    );
+                    userDAO.findByUsername(normalizedUsername);
 
             if (userOptional.isEmpty()) {
                 throw new ValidationException(
@@ -52,11 +48,10 @@ public final class AuthService {
 
             User user = userOptional.get();
 
-            boolean passwordMatches =
-                    PasswordUtil.verifyPassword(
-                            rawPassword,
-                            user.getPasswordHash()
-                    );
+            boolean passwordMatches = PasswordUtil.verifyPassword(
+                    rawPassword,
+                    user.getPasswordHash()
+            );
 
             if (!passwordMatches) {
                 throw new ValidationException(
@@ -71,7 +66,6 @@ public final class AuthService {
             }
 
             return user;
-
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Authentication failed because "
@@ -81,18 +75,14 @@ public final class AuthService {
         }
     }
 
-    private String normalizeUsername(
-            String username
-    ) {
-
+    private String normalizeUsername(String username) {
         if (username == null) {
             throw new ValidationException(
                     "Username must not be null."
             );
         }
 
-        String normalizedUsername =
-                username.trim();
+        String normalizedUsername = username.trim();
 
         if (normalizedUsername.isEmpty()) {
             throw new ValidationException(
@@ -102,18 +92,14 @@ public final class AuthService {
 
         if (normalizedUsername.length() > 50) {
             throw new ValidationException(
-                    "Username must not exceed "
-                            + "50 characters."
+                    "Username must not exceed 50 characters."
             );
         }
 
         return normalizedUsername;
     }
 
-    private void validatePassword(
-            String rawPassword
-    ) {
-
+    private void validatePassword(String rawPassword) {
         if (rawPassword == null) {
             throw new ValidationException(
                     "Password must not be null."

@@ -87,19 +87,11 @@ public final class EquipmentDAO {
             """;
 
     public List<Equipment> findAll() throws SQLException {
-
         List<Equipment> equipmentList = new ArrayList<>();
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(SELECT_ALL_SQL);
-
-                ResultSet resultSet =
-                        statement.executeQuery()
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_ALL_SQL);
+             ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
                 equipmentList.add(mapRow(resultSet));
@@ -110,19 +102,12 @@ public final class EquipmentDAO {
     }
 
     public Optional<Equipment> findById(long id) throws SQLException {
-
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(SELECT_BY_ID_SQL)
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID_SQL)) {
 
             statement.setLong(1, id);
 
             try (ResultSet resultSet = statement.executeQuery()) {
-
                 if (resultSet.next()) {
                     return Optional.of(mapRow(resultSet));
                 }
@@ -133,19 +118,13 @@ public final class EquipmentDAO {
     }
 
     public long insert(Equipment equipment) throws SQLException {
-
         validateEquipment(equipment);
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(
-                                INSERT_SQL,
-                                Statement.RETURN_GENERATED_KEYS
-                        )
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     INSERT_SQL,
+                     Statement.RETURN_GENERATED_KEYS
+             )) {
 
             setEquipmentParameters(statement, equipment);
 
@@ -153,32 +132,25 @@ public final class EquipmentDAO {
 
             if (affectedRows != 1) {
                 throw new SQLException(
-                        "Equipment insertion failed. Affected rows: "
-                                + affectedRows
+                        "Equipment insertion failed. Affected rows: " + affectedRows
                 );
             }
 
-            try (ResultSet generatedKeys =
-                         statement.getGeneratedKeys()) {
-
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-
                     long generatedId = generatedKeys.getLong(1);
                     equipment.setId(generatedId);
-
                     return generatedId;
                 }
             }
 
             throw new SQLException(
-                    "Equipment insertion succeeded, "
-                            + "but no generated ID was returned."
+                    "Equipment insertion succeeded, but no generated ID was returned."
             );
         }
     }
 
     public boolean update(Equipment equipment) throws SQLException {
-
         validateEquipment(equipment);
 
         if (equipment.getId() == null) {
@@ -187,13 +159,8 @@ public final class EquipmentDAO {
             );
         }
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(UPDATE_SQL)
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)) {
 
             setEquipmentParameters(statement, equipment);
             statement.setLong(10, equipment.getId());
@@ -203,76 +170,36 @@ public final class EquipmentDAO {
     }
 
     public boolean delete(long id) throws SQLException {
-
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(DELETE_SQL)
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
 
             statement.setLong(1, id);
-
             return statement.executeUpdate() == 1;
         }
     }
 
-    private Equipment mapRow(ResultSet resultSet)
-            throws SQLException {
-
+    private Equipment mapRow(ResultSet resultSet) throws SQLException {
         Equipment equipment = new Equipment();
 
-        equipment.setId(
-                resultSet.getLong("id")
-        );
-
-        equipment.setInventoryNumber(
-                resultSet.getString("inventory_number")
-        );
-
-        equipment.setName(
-                resultSet.getString("name")
-        );
-
-        equipment.setType(
-                resultSet.getString("type")
-        );
-
-        equipment.setManufacturer(
-                resultSet.getString("manufacturer")
-        );
-
-        equipment.setModel(
-                resultSet.getString("model")
-        );
-
-        equipment.setSerialNumber(
-                resultSet.getString("serial_number")
-        );
-
-        equipment.setIpAddress(
-                resultSet.getString("ip_address")
-        );
-
+        equipment.setId(resultSet.getLong("id"));
+        equipment.setInventoryNumber(resultSet.getString("inventory_number"));
+        equipment.setName(resultSet.getString("name"));
+        equipment.setType(resultSet.getString("type"));
+        equipment.setManufacturer(resultSet.getString("manufacturer"));
+        equipment.setModel(resultSet.getString("model"));
+        equipment.setSerialNumber(resultSet.getString("serial_number"));
+        equipment.setIpAddress(resultSet.getString("ip_address"));
         equipment.setStatus(
-                EquipmentStatus.valueOf(
-                        resultSet.getString("status")
-                )
+                EquipmentStatus.valueOf(resultSet.getString("status"))
         );
 
-        Timestamp createdAt =
-                resultSet.getTimestamp("created_at");
+        Timestamp createdAt = resultSet.getTimestamp("created_at");
 
         if (createdAt != null) {
-            equipment.setCreatedAt(
-                    createdAt.toLocalDateTime()
-            );
+            equipment.setCreatedAt(createdAt.toLocalDateTime());
         }
 
-        equipment.setNotes(
-                resultSet.getString("notes")
-        );
+        equipment.setNotes(resultSet.getString("notes"));
 
         return equipment;
     }
@@ -281,74 +208,26 @@ public final class EquipmentDAO {
             PreparedStatement statement,
             Equipment equipment
     ) throws SQLException {
-
-        statement.setString(
-                1,
-                equipment.getInventoryNumber()
-        );
-
-        statement.setString(
-                2,
-                equipment.getName()
-        );
-
-        statement.setString(
-                3,
-                equipment.getType()
-        );
-
-        statement.setString(
-                4,
-                equipment.getManufacturer()
-        );
-
-        statement.setString(
-                5,
-                equipment.getModel()
-        );
-
-        statement.setString(
-                6,
-                equipment.getSerialNumber()
-        );
-
-        statement.setString(
-                7,
-                equipment.getIpAddress()
-        );
-
-        statement.setString(
-                8,
-                equipment.getStatus().name()
-        );
-
-        statement.setString(
-                9,
-                equipment.getNotes()
-        );
+        statement.setString(1, equipment.getInventoryNumber());
+        statement.setString(2, equipment.getName());
+        statement.setString(3, equipment.getType());
+        statement.setString(4, equipment.getManufacturer());
+        statement.setString(5, equipment.getModel());
+        statement.setString(6, equipment.getSerialNumber());
+        statement.setString(7, equipment.getIpAddress());
+        statement.setString(8, equipment.getStatus().name());
+        statement.setString(9, equipment.getNotes());
     }
 
     private void validateEquipment(Equipment equipment) {
-
         Objects.requireNonNull(
                 equipment,
                 "Equipment must not be null."
         );
 
-        requireText(
-                equipment.getInventoryNumber(),
-                "Inventory number"
-        );
-
-        requireText(
-                equipment.getName(),
-                "Equipment name"
-        );
-
-        requireText(
-                equipment.getType(),
-                "Equipment type"
-        );
+        requireText(equipment.getInventoryNumber(), "Inventory number");
+        requireText(equipment.getName(), "Equipment name");
+        requireText(equipment.getType(), "Equipment type");
 
         Objects.requireNonNull(
                 equipment.getStatus(),
@@ -356,11 +235,7 @@ public final class EquipmentDAO {
         );
     }
 
-    private void requireText(
-            String value,
-            String fieldName
-    ) {
-
+    private void requireText(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(
                     fieldName + " must not be empty."

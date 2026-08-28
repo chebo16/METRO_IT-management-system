@@ -28,15 +28,8 @@ public final class SessionUser implements Serializable {
                 "User ID must not be null."
         );
 
-        this.username = requireText(
-                username,
-                "Username"
-        );
-
-        this.fullName = requireText(
-                fullName,
-                "Full name"
-        );
+        this.username = requireText(username, "Username");
+        this.fullName = requireText(fullName, "Full name");
 
         this.role = Objects.requireNonNull(
                 role,
@@ -45,7 +38,6 @@ public final class SessionUser implements Serializable {
     }
 
     public static SessionUser fromUser(User user) {
-
         Objects.requireNonNull(
                 user,
                 "User must not be null."
@@ -87,7 +79,6 @@ public final class SessionUser implements Serializable {
             String value,
             String fieldName
     ) {
-
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(
                     fieldName + " must not be empty."

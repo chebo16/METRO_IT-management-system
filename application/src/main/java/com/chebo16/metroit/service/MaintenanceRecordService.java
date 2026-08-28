@@ -61,10 +61,8 @@ public final class MaintenanceRecordService {
     }
 
     public List<MaintenanceRecord> getAllRecords() {
-
         try {
             return maintenanceRecordDAO.findAll();
-
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to load maintenance records.",
@@ -74,21 +72,13 @@ public final class MaintenanceRecordService {
     }
 
     public MaintenanceRecord getRecordById(long recordId) {
-
-        validateId(
-                recordId,
-                "Maintenance record ID"
-        );
+        validateId(recordId, "Maintenance record ID");
 
         try {
             return maintenanceRecordDAO.findById(recordId)
-                    .orElseThrow(() ->
-                            new NotFoundException(
-                                    "Maintenance record was not found: "
-                                            + recordId
-                            )
-                    );
-
+                    .orElseThrow(() -> new NotFoundException(
+                            "Maintenance record was not found: " + recordId
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to load maintenance record with ID: "
@@ -98,42 +88,28 @@ public final class MaintenanceRecordService {
         }
     }
 
-    public List<MaintenanceRecord> getRecordsByIncident(
-            long incidentId
-    ) {
-
+    public List<MaintenanceRecord> getRecordsByIncident(long incidentId) {
         validateIncidentExists(incidentId);
 
         try {
-            return maintenanceRecordDAO.findByIncidentId(
-                    incidentId
-            );
-
+            return maintenanceRecordDAO.findByIncidentId(incidentId);
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to load maintenance records "
-                            + "for incident ID: "
+                    "Failed to load maintenance records for incident ID: "
                             + incidentId,
                     exception
             );
         }
     }
 
-    public List<MaintenanceRecord> getRecordsByEquipment(
-            long equipmentId
-    ) {
-
+    public List<MaintenanceRecord> getRecordsByEquipment(long equipmentId) {
         validateEquipmentExists(equipmentId);
 
         try {
-            return maintenanceRecordDAO.findByEquipmentId(
-                    equipmentId
-            );
-
+            return maintenanceRecordDAO.findByEquipmentId(equipmentId);
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to load maintenance history "
-                            + "for equipment ID: "
+                    "Failed to load maintenance history for equipment ID: "
                             + equipmentId,
                     exception
             );
@@ -143,31 +119,20 @@ public final class MaintenanceRecordService {
     public List<MaintenanceRecord> getRecordsByTechnician(
             long technicianId
     ) {
-
-        validateTechnician(
-                technicianId,
-                false
-        );
+        validateTechnician(technicianId, false);
 
         try {
-            return maintenanceRecordDAO.findByTechnicianId(
-                    technicianId
-            );
-
+            return maintenanceRecordDAO.findByTechnicianId(technicianId);
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to load maintenance records "
-                            + "for technician ID: "
+                    "Failed to load maintenance records for technician ID: "
                             + technicianId,
                     exception
             );
         }
     }
 
-    public MaintenanceRecord createRecord(
-            MaintenanceRecord record
-    ) {
-
+    public MaintenanceRecord createRecord(MaintenanceRecord record) {
         Objects.requireNonNull(
                 record,
                 "Maintenance record must not be null."
@@ -178,17 +143,13 @@ public final class MaintenanceRecordService {
         validateRecordRelations(record);
 
         try {
-            long generatedId =
-                    maintenanceRecordDAO.insert(record);
+            long generatedId = maintenanceRecordDAO.insert(record);
 
             return maintenanceRecordDAO.findById(generatedId)
-                    .orElseThrow(() ->
-                            new ServiceException(
-                                    "Maintenance record was created, "
-                                            + "but could not be reloaded."
-                            )
-                    );
-
+                    .orElseThrow(() -> new ServiceException(
+                            "Maintenance record was created, "
+                                    + "but could not be reloaded."
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to create maintenance record.",
@@ -197,10 +158,7 @@ public final class MaintenanceRecordService {
         }
     }
 
-    public MaintenanceRecord updateRecord(
-            MaintenanceRecord record
-    ) {
-
+    public MaintenanceRecord updateRecord(MaintenanceRecord record) {
         Objects.requireNonNull(
                 record,
                 "Maintenance record must not be null."
@@ -208,15 +166,11 @@ public final class MaintenanceRecordService {
 
         if (record.getId() == null) {
             throw new ValidationException(
-                    "Maintenance record ID "
-                            + "is required for update."
+                    "Maintenance record ID is required for update."
             );
         }
 
-        validateId(
-                record.getId(),
-                "Maintenance record ID"
-        );
+        validateId(record.getId(), "Maintenance record ID");
 
         MaintenanceRecord existingRecord =
                 getRecordById(record.getId());
@@ -225,17 +179,10 @@ public final class MaintenanceRecordService {
         validateRecordFields(record);
         validateRecordRelations(record);
 
-        /*
-         * performedAt is generated by MySQL and must not
-         * be changed during a normal record update.
-         */
-        record.setPerformedAt(
-                existingRecord.getPerformedAt()
-        );
+        record.setPerformedAt(existingRecord.getPerformedAt());
 
         try {
-            boolean updated =
-                    maintenanceRecordDAO.update(record);
+            boolean updated = maintenanceRecordDAO.update(record);
 
             if (!updated) {
                 throw new NotFoundException(
@@ -244,37 +191,25 @@ public final class MaintenanceRecordService {
                 );
             }
 
-            return maintenanceRecordDAO
-                    .findById(record.getId())
-                    .orElseThrow(() ->
-                            new ServiceException(
-                                    "Maintenance record was updated, "
-                                            + "but could not be reloaded."
-                            )
-                    );
-
+            return maintenanceRecordDAO.findById(record.getId())
+                    .orElseThrow(() -> new ServiceException(
+                            "Maintenance record was updated, "
+                                    + "but could not be reloaded."
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to update maintenance record "
-                            + "with ID: "
+                    "Failed to update maintenance record with ID: "
                             + record.getId(),
                     exception
             );
         }
     }
 
-    private void validateRecordRelations(
-            MaintenanceRecord record
-    ) {
-
+    private void validateRecordRelations(MaintenanceRecord record) {
         Incident incident =
-                validateIncidentExists(
-                        record.getIncidentId()
-                );
+                validateIncidentExists(record.getIncidentId());
 
-        validateEquipmentExists(
-                record.getEquipmentId()
-        );
+        validateEquipmentExists(record.getEquipmentId());
 
         validateTechnician(
                 record.getTechnicianId(),
@@ -292,17 +227,10 @@ public final class MaintenanceRecordService {
             );
         }
 
-        if (incident.getStatus() == IncidentStatus.NEW) {
+        if (incident.getStatus() != IncidentStatus.IN_PROGRESS) {
             throw new ValidationException(
-                    "Maintenance work cannot be added "
-                            + "to an incident with NEW status."
-            );
-        }
-
-        if (incident.getStatus() == IncidentStatus.CLOSED) {
-            throw new ValidationException(
-                    "Maintenance work cannot be added or changed "
-                            + "for a closed incident."
+                    "Maintenance work can only be added or changed "
+                            + "for an incident with IN_PROGRESS status."
             );
         }
 
@@ -328,55 +256,33 @@ public final class MaintenanceRecordService {
         }
     }
 
-    private Incident validateIncidentExists(
-            Long incidentId
-    ) {
-
-        validateId(
-                incidentId,
-                "Incident ID"
-        );
+    private Incident validateIncidentExists(Long incidentId) {
+        validateId(incidentId, "Incident ID");
 
         try {
             return incidentDAO.findById(incidentId)
-                    .orElseThrow(() ->
-                            new NotFoundException(
-                                    "Incident was not found: "
-                                            + incidentId
-                            )
-                    );
-
+                    .orElseThrow(() -> new NotFoundException(
+                            "Incident was not found: " + incidentId
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to validate incident ID: "
-                            + incidentId,
+                    "Failed to validate incident ID: " + incidentId,
                     exception
             );
         }
     }
 
-    private void validateEquipmentExists(
-            Long equipmentId
-    ) {
-
-        validateId(
-                equipmentId,
-                "Equipment ID"
-        );
+    private void validateEquipmentExists(Long equipmentId) {
+        validateId(equipmentId, "Equipment ID");
 
         try {
             equipmentDAO.findById(equipmentId)
-                    .orElseThrow(() ->
-                            new NotFoundException(
-                                    "Equipment was not found: "
-                                            + equipmentId
-                            )
-                    );
-
+                    .orElseThrow(() -> new NotFoundException(
+                            "Equipment was not found: " + equipmentId
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to validate equipment ID: "
-                            + equipmentId,
+                    "Failed to validate equipment ID: " + equipmentId,
                     exception
             );
         }
@@ -386,40 +292,27 @@ public final class MaintenanceRecordService {
             Long technicianId,
             boolean activeRequired
     ) {
-
-        validateId(
-                technicianId,
-                "Technician ID"
-        );
+        validateId(technicianId, "Technician ID");
 
         try {
-            User technician =
-                    userDAO.findById(technicianId)
-                            .orElseThrow(() ->
-                                    new NotFoundException(
-                                            "Technician was not found: "
-                                                    + technicianId
-                                    )
-                            );
+            User technician = userDAO.findById(technicianId)
+                    .orElseThrow(() -> new NotFoundException(
+                            "Technician was not found: " + technicianId
+                    ));
 
-            if (technician.getRole()
-                    != UserRole.TECHNICIAN) {
-
+            if (technician.getRole() != UserRole.TECHNICIAN) {
                 throw new ValidationException(
                         "Selected user is not a technician: "
                                 + technicianId
                 );
             }
 
-            if (activeRequired
-                    && !technician.isActive()) {
-
+            if (activeRequired && !technician.isActive()) {
                 throw new ValidationException(
                         "Selected technician is inactive: "
                                 + technicianId
                 );
             }
-
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to validate technician ID: "
@@ -429,24 +322,10 @@ public final class MaintenanceRecordService {
         }
     }
 
-    private void validateRecordFields(
-            MaintenanceRecord record
-    ) {
-
-        validateId(
-                record.getIncidentId(),
-                "Incident ID"
-        );
-
-        validateId(
-                record.getEquipmentId(),
-                "Equipment ID"
-        );
-
-        validateId(
-                record.getTechnicianId(),
-                "Technician ID"
-        );
+    private void validateRecordFields(MaintenanceRecord record) {
+        validateId(record.getIncidentId(), "Incident ID");
+        validateId(record.getEquipmentId(), "Equipment ID");
+        validateId(record.getTechnicianId(), "Technician ID");
 
         requireText(
                 record.getWorkDescription(),
@@ -460,51 +339,33 @@ public final class MaintenanceRecordService {
         }
     }
 
-    private void normalizeRecord(
-            MaintenanceRecord record
-    ) {
-
+    private void normalizeRecord(MaintenanceRecord record) {
         record.setWorkDescription(
-                trimRequired(
-                        record.getWorkDescription()
-                )
+                trimRequired(record.getWorkDescription())
         );
 
         record.setReplacedComponents(
-                trimToNull(
-                        record.getReplacedComponents()
-                )
+                trimToNull(record.getReplacedComponents())
         );
     }
 
-    private void validateId(
-            Long id,
-            String fieldName
-    ) {
-
+    private void validateId(Long id, String fieldName) {
         if (id == null || id <= 0) {
             throw new ValidationException(
-                    fieldName
-                            + " must be greater than zero."
+                    fieldName + " must be greater than zero."
             );
         }
     }
 
-    private void requireText(
-            String value,
-            String fieldName
-    ) {
-
+    private void requireText(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new ValidationException(
-                    fieldName
-                            + " must not be empty."
+                    fieldName + " must not be empty."
             );
         }
     }
 
     private String trimRequired(String value) {
-
         if (value == null) {
             return null;
         }
@@ -513,13 +374,11 @@ public final class MaintenanceRecordService {
     }
 
     private String trimToNull(String value) {
-
         if (value == null) {
             return null;
         }
 
-        String trimmedValue =
-                value.trim();
+        String trimmedValue = value.trim();
 
         if (trimmedValue.isEmpty()) {
             return null;

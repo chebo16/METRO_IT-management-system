@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 @WebServlet(
         name = "UserCreateServlet",
@@ -28,11 +29,8 @@ public final class UserCreateServlet extends HttpServlet {
     private static final String USER_FORM_VIEW =
             "/WEB-INF/views/admin/users/form.jsp";
 
-    private static final int MINIMUM_PASSWORD_LENGTH =
-            8;
-
-    private static final int MAXIMUM_PASSWORD_BYTES =
-            72;
+    private static final int MINIMUM_PASSWORD_LENGTH = 8;
+    private static final int MAXIMUM_PASSWORD_BYTES = 72;
 
     private final UserService userService =
             new UserService();
@@ -45,12 +43,8 @@ public final class UserCreateServlet extends HttpServlet {
 
         prepareCreateForm(request);
 
-        request.getRequestDispatcher(
-                USER_FORM_VIEW
-        ).forward(
-                request,
-                response
-        );
+        request.getRequestDispatcher(USER_FORM_VIEW)
+                .forward(request, response);
     }
 
     @Override
@@ -59,29 +53,19 @@ public final class UserCreateServlet extends HttpServlet {
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        request.setCharacterEncoding(
-                StandardCharsets.UTF_8.name()
-        );
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         String username =
-                normalizeText(
-                        request.getParameter("username")
-                );
+                normalizeText(request.getParameter("username"));
 
         String fullName =
-                normalizeText(
-                        request.getParameter("fullName")
-                );
+                normalizeText(request.getParameter("fullName"));
 
         String email =
-                normalizeText(
-                        request.getParameter("email")
-                );
+                normalizeText(request.getParameter("email"));
 
         String roleValue =
-                normalizeText(
-                        request.getParameter("role")
-                );
+                normalizeText(request.getParameter("role"));
 
         String rawPassword =
                 request.getParameter("password");
@@ -90,8 +74,7 @@ public final class UserCreateServlet extends HttpServlet {
                 request.getParameter("confirmPassword");
 
         try {
-            UserRole role =
-                    parseRole(roleValue);
+            UserRole role = parseRole(roleValue);
 
             validatePasswords(
                     rawPassword,
@@ -99,22 +82,17 @@ public final class UserCreateServlet extends HttpServlet {
             );
 
             String passwordHash =
-                    PasswordUtil.hashPassword(
-                            rawPassword
-                    );
+                    PasswordUtil.hashPassword(rawPassword);
 
-            User newUser =
-                    new User(
-                            username,
-                            passwordHash,
-                            fullName,
-                            email,
-                            role
-                    );
-
-            userService.createUser(
-                    newUser
+            User newUser = new User(
+                    username,
+                    passwordHash,
+                    fullName,
+                    email,
+                    role
             );
+
+            userService.createUser(newUser);
 
             response.sendRedirect(
                     response.encodeRedirectURL(
@@ -142,15 +120,10 @@ public final class UserCreateServlet extends HttpServlet {
                     exception.getMessage()
             );
 
-            request.getRequestDispatcher(
-                    USER_FORM_VIEW
-            ).forward(
-                    request,
-                    response
-            );
+            request.getRequestDispatcher(USER_FORM_VIEW)
+                    .forward(request, response);
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to create the user account.",
                     exception
@@ -172,28 +145,14 @@ public final class UserCreateServlet extends HttpServlet {
                             + "Please try again later."
             );
 
-            request.getRequestDispatcher(
-                    USER_FORM_VIEW
-            ).forward(
-                    request,
-                    response
-            );
+            request.getRequestDispatcher(USER_FORM_VIEW)
+                    .forward(request, response);
         }
     }
 
-    private void prepareCreateForm(
-            HttpServletRequest request
-    ) {
-
-        request.setAttribute(
-                "pageTitle",
-                "Add user"
-        );
-
-        request.setAttribute(
-                "formMode",
-                "create"
-        );
+    private void prepareCreateForm(HttpServletRequest request) {
+        request.setAttribute("pageTitle", "Add user");
+        request.setAttribute("formMode", "create");
 
         request.setAttribute(
                 "formAction",
@@ -211,10 +170,7 @@ public final class UserCreateServlet extends HttpServlet {
                 UserRole.values()
         );
 
-        if (request.getAttribute(
-                "selectedRole"
-        ) == null) {
-
+        if (request.getAttribute("selectedRole") == null) {
             request.setAttribute(
                     "selectedRole",
                     UserRole.TECHNICIAN.name()
@@ -229,32 +185,16 @@ public final class UserCreateServlet extends HttpServlet {
             String email,
             String roleValue
     ) {
+        request.setAttribute("username", username);
+        request.setAttribute("fullName", fullName);
+        request.setAttribute("email", email);
 
-        request.setAttribute(
-                "username",
-                username
-        );
-
-        request.setAttribute(
-                "fullName",
-                fullName
-        );
-
-        request.setAttribute(
-                "email",
-                email
-        );
-
-        if (roleValue == null
-                || roleValue.isBlank()) {
-
+        if (roleValue == null || roleValue.isBlank()) {
             request.setAttribute(
                     "selectedRole",
                     UserRole.TECHNICIAN.name()
             );
-
         } else {
-
             request.setAttribute(
                     "selectedRole",
                     roleValue
@@ -262,13 +202,8 @@ public final class UserCreateServlet extends HttpServlet {
         }
     }
 
-    private UserRole parseRole(
-            String roleValue
-    ) {
-
-        if (roleValue == null
-                || roleValue.isBlank()) {
-
+    private UserRole parseRole(String roleValue) {
+        if (roleValue == null || roleValue.isBlank()) {
             throw new ValidationException(
                     "User role must be selected."
             );
@@ -276,13 +211,10 @@ public final class UserCreateServlet extends HttpServlet {
 
         try {
             return UserRole.valueOf(
-                    roleValue
-                            .trim()
-                            .toUpperCase()
+                    roleValue.trim()
+                            .toUpperCase(Locale.ROOT)
             );
-
         } catch (IllegalArgumentException exception) {
-
             throw new ValidationException(
                     "Selected user role is invalid."
             );
@@ -293,18 +225,13 @@ public final class UserCreateServlet extends HttpServlet {
             String rawPassword,
             String confirmedPassword
     ) {
-
-        if (rawPassword == null
-                || rawPassword.isBlank()) {
-
+        if (rawPassword == null || rawPassword.isBlank()) {
             throw new ValidationException(
                     "Password must not be empty."
             );
         }
 
-        if (rawPassword.length()
-                < MINIMUM_PASSWORD_LENGTH) {
-
+        if (rawPassword.length() < MINIMUM_PASSWORD_LENGTH) {
             throw new ValidationException(
                     "Password must contain at least "
                             + MINIMUM_PASSWORD_LENGTH
@@ -313,13 +240,9 @@ public final class UserCreateServlet extends HttpServlet {
         }
 
         int passwordBytes =
-                rawPassword.getBytes(
-                        StandardCharsets.UTF_8
-                ).length;
+                rawPassword.getBytes(StandardCharsets.UTF_8).length;
 
-        if (passwordBytes
-                > MAXIMUM_PASSWORD_BYTES) {
-
+        if (passwordBytes > MAXIMUM_PASSWORD_BYTES) {
             throw new ValidationException(
                     "Password must not exceed "
                             + MAXIMUM_PASSWORD_BYTES
@@ -328,9 +251,7 @@ public final class UserCreateServlet extends HttpServlet {
         }
 
         if (confirmedPassword == null
-                || !rawPassword.equals(
-                confirmedPassword
-        )) {
+                || !rawPassword.equals(confirmedPassword)) {
 
             throw new ValidationException(
                     "Password confirmation does not match."
@@ -338,10 +259,7 @@ public final class UserCreateServlet extends HttpServlet {
         }
     }
 
-    private String normalizeText(
-            String value
-    ) {
-
+    private String normalizeText(String value) {
         if (value == null) {
             return "";
         }

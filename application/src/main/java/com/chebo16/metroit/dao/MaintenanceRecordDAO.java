@@ -87,24 +87,12 @@ public final class MaintenanceRecordDAO {
             WHERE id = ?
             """;
 
-    public List<MaintenanceRecord> findAll()
-            throws SQLException {
+    public List<MaintenanceRecord> findAll() throws SQLException {
+        List<MaintenanceRecord> records = new ArrayList<>();
 
-        List<MaintenanceRecord> records =
-                new ArrayList<>();
-
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(
-                                SELECT_ALL_SQL
-                        );
-
-                ResultSet resultSet =
-                        statement.executeQuery()
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_ALL_SQL);
+             ResultSet resultSet = statement.executeQuery()) {
 
             while (resultSet.next()) {
                 records.add(mapRow(resultSet));
@@ -114,30 +102,17 @@ public final class MaintenanceRecordDAO {
         return records;
     }
 
-    public Optional<MaintenanceRecord> findById(long id)
-            throws SQLException {
-
+    public Optional<MaintenanceRecord> findById(long id) throws SQLException {
         validateId(id, "Maintenance record ID");
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(
-                                SELECT_BY_ID_SQL
-                        )
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_BY_ID_SQL)) {
 
             statement.setLong(1, id);
 
-            try (ResultSet resultSet =
-                         statement.executeQuery()) {
-
+            try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
-                    return Optional.of(
-                            mapRow(resultSet)
-                    );
+                    return Optional.of(mapRow(resultSet));
                 }
             }
         }
@@ -145,9 +120,8 @@ public final class MaintenanceRecordDAO {
         return Optional.empty();
     }
 
-    public List<MaintenanceRecord> findByIncidentId(
-            long incidentId
-    ) throws SQLException {
+    public List<MaintenanceRecord> findByIncidentId(long incidentId)
+            throws SQLException {
 
         validateId(incidentId, "Incident ID");
 
@@ -157,9 +131,8 @@ public final class MaintenanceRecordDAO {
         );
     }
 
-    public List<MaintenanceRecord> findByEquipmentId(
-            long equipmentId
-    ) throws SQLException {
+    public List<MaintenanceRecord> findByEquipmentId(long equipmentId)
+            throws SQLException {
 
         validateId(equipmentId, "Equipment ID");
 
@@ -169,9 +142,8 @@ public final class MaintenanceRecordDAO {
         );
     }
 
-    public List<MaintenanceRecord> findByTechnicianId(
-            long technicianId
-    ) throws SQLException {
+    public List<MaintenanceRecord> findByTechnicianId(long technicianId)
+            throws SQLException {
 
         validateId(technicianId, "Technician ID");
 
@@ -181,45 +153,30 @@ public final class MaintenanceRecordDAO {
         );
     }
 
-    public long insert(MaintenanceRecord record)
-            throws SQLException {
-
+    public long insert(MaintenanceRecord record) throws SQLException {
         validateRecord(record);
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(
-                                INSERT_SQL,
-                                Statement.RETURN_GENERATED_KEYS
-                        )
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     INSERT_SQL,
+                     Statement.RETURN_GENERATED_KEYS
+             )) {
 
             setRecordParameters(statement, record);
 
-            int affectedRows =
-                    statement.executeUpdate();
+            int affectedRows = statement.executeUpdate();
 
             if (affectedRows != 1) {
                 throw new SQLException(
-                        "Maintenance record insertion failed. "
-                                + "Affected rows: "
+                        "Maintenance record insertion failed. Affected rows: "
                                 + affectedRows
                 );
             }
 
-            try (ResultSet generatedKeys =
-                         statement.getGeneratedKeys()) {
-
+            try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
-
-                    long generatedId =
-                            generatedKeys.getLong(1);
-
+                    long generatedId = generatedKeys.getLong(1);
                     record.setId(generatedId);
-
                     return generatedId;
                 }
             }
@@ -231,53 +188,30 @@ public final class MaintenanceRecordDAO {
         }
     }
 
-    public boolean update(MaintenanceRecord record)
-            throws SQLException {
-
+    public boolean update(MaintenanceRecord record) throws SQLException {
         validateRecord(record);
 
         if (record.getId() == null) {
             throw new IllegalArgumentException(
-                    "Maintenance record ID "
-                            + "is required for update."
+                    "Maintenance record ID is required for update."
             );
         }
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(
-                                UPDATE_SQL
-                        )
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)) {
 
             setRecordParameters(statement, record);
-
-            statement.setLong(
-                    7,
-                    record.getId()
-            );
+            statement.setLong(7, record.getId());
 
             return statement.executeUpdate() == 1;
         }
     }
 
-    public boolean delete(long id)
-            throws SQLException {
-
+    public boolean delete(long id) throws SQLException {
         validateId(id, "Maintenance record ID");
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(
-                                DELETE_SQL
-                        )
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(DELETE_SQL)) {
 
             statement.setLong(1, id);
 
@@ -290,22 +224,14 @@ public final class MaintenanceRecordDAO {
             long foreignKeyId
     ) throws SQLException {
 
-        List<MaintenanceRecord> records =
-                new ArrayList<>();
+        List<MaintenanceRecord> records = new ArrayList<>();
 
-        try (
-                Connection connection =
-                        DatabaseConnection.getConnection();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(sql)
-        ) {
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setLong(1, foreignKeyId);
 
-            try (ResultSet resultSet =
-                         statement.executeQuery()) {
-
+            try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     records.add(mapRow(resultSet));
                 }
@@ -315,56 +241,29 @@ public final class MaintenanceRecordDAO {
         return records;
     }
 
-    private MaintenanceRecord mapRow(
-            ResultSet resultSet
-    ) throws SQLException {
+    private MaintenanceRecord mapRow(ResultSet resultSet)
+            throws SQLException {
 
-        MaintenanceRecord record =
-                new MaintenanceRecord();
+        MaintenanceRecord record = new MaintenanceRecord();
 
-        record.setId(
-                resultSet.getLong("id")
-        );
-
-        record.setIncidentId(
-                resultSet.getLong("incident_id")
-        );
-
-        record.setEquipmentId(
-                resultSet.getLong("equipment_id")
-        );
-
-        record.setTechnicianId(
-                resultSet.getLong("technician_id")
-        );
-
+        record.setId(resultSet.getLong("id"));
+        record.setIncidentId(resultSet.getLong("incident_id"));
+        record.setEquipmentId(resultSet.getLong("equipment_id"));
+        record.setTechnicianId(resultSet.getLong("technician_id"));
         record.setWorkDescription(
-                resultSet.getString(
-                        "work_description"
-                )
+                resultSet.getString("work_description")
         );
-
         record.setReplacedComponents(
-                resultSet.getString(
-                        "replaced_components"
-                )
+                resultSet.getString("replaced_components")
         );
-
         record.setResult(
-                MaintenanceResult.valueOf(
-                        resultSet.getString("result")
-                )
+                MaintenanceResult.valueOf(resultSet.getString("result"))
         );
 
-        Timestamp performedAt =
-                resultSet.getTimestamp(
-                        "performed_at"
-                );
+        Timestamp performedAt = resultSet.getTimestamp("performed_at");
 
         if (performedAt != null) {
-            record.setPerformedAt(
-                    performedAt.toLocalDateTime()
-            );
+            record.setPerformedAt(performedAt.toLocalDateTime());
         }
 
         return record;
@@ -375,60 +274,23 @@ public final class MaintenanceRecordDAO {
             MaintenanceRecord record
     ) throws SQLException {
 
-        statement.setLong(
-                1,
-                record.getIncidentId()
-        );
-
-        statement.setLong(
-                2,
-                record.getEquipmentId()
-        );
-
-        statement.setLong(
-                3,
-                record.getTechnicianId()
-        );
-
-        statement.setString(
-                4,
-                record.getWorkDescription().trim()
-        );
-
-        statement.setString(
-                5,
-                record.getReplacedComponents()
-        );
-
-        statement.setString(
-                6,
-                record.getResult().name()
-        );
+        statement.setLong(1, record.getIncidentId());
+        statement.setLong(2, record.getEquipmentId());
+        statement.setLong(3, record.getTechnicianId());
+        statement.setString(4, record.getWorkDescription().trim());
+        statement.setString(5, record.getReplacedComponents());
+        statement.setString(6, record.getResult().name());
     }
 
-    private void validateRecord(
-            MaintenanceRecord record
-    ) {
-
+    private void validateRecord(MaintenanceRecord record) {
         Objects.requireNonNull(
                 record,
                 "Maintenance record must not be null."
         );
 
-        validateId(
-                record.getIncidentId(),
-                "Incident ID"
-        );
-
-        validateId(
-                record.getEquipmentId(),
-                "Equipment ID"
-        );
-
-        validateId(
-                record.getTechnicianId(),
-                "Technician ID"
-        );
+        validateId(record.getIncidentId(), "Incident ID");
+        validateId(record.getEquipmentId(), "Equipment ID");
+        validateId(record.getTechnicianId(), "Technician ID");
 
         requireText(
                 record.getWorkDescription(),
@@ -441,28 +303,18 @@ public final class MaintenanceRecordDAO {
         );
     }
 
-    private void validateId(
-            Long id,
-            String fieldName
-    ) {
-
+    private void validateId(Long id, String fieldName) {
         if (id == null || id <= 0) {
             throw new IllegalArgumentException(
-                    fieldName
-                            + " must be greater than zero."
+                    fieldName + " must be greater than zero."
             );
         }
     }
 
-    private void requireText(
-            String value,
-            String fieldName
-    ) {
-
+    private void requireText(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(
-                    fieldName
-                            + " must not be empty."
+                    fieldName + " must not be empty."
             );
         }
     }

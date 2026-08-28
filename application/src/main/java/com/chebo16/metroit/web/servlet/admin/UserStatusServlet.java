@@ -36,14 +36,9 @@ public final class UserStatusServlet extends HttpServlet {
             HttpServletResponse response
     ) throws IOException {
 
-        /*
-         * Account status changes must only be performed
-         * through POST requests.
-         */
         response.sendError(
                 HttpServletResponse.SC_METHOD_NOT_ALLOWED,
-                "User status can only be changed "
-                        + "using a POST request."
+                "User status can only be changed using a POST request."
         );
     }
 
@@ -53,39 +48,27 @@ public final class UserStatusServlet extends HttpServlet {
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        request.setCharacterEncoding(
-                StandardCharsets.UTF_8.name()
-        );
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         try {
             long userId =
-                    parseUserId(
-                            request.getParameter("id")
-                    );
+                    parseUserId(request.getParameter("id"));
 
             boolean requestedActiveStatus =
                     parseActiveStatus(
                             request.getParameter("active")
                     );
 
-            User user =
-                    userService.getUserById(userId);
+            User user = userService.getUserById(userId);
 
             validateCurrentAccountStatusChange(
                     request,
                     user
             );
 
-            if (user.isActive()
-                    != requestedActiveStatus) {
-
-                user.setActive(
-                        requestedActiveStatus
-                );
-
-                userService.updateUser(
-                        user
-                );
+            if (user.isActive() != requestedActiveStatus) {
+                user.setActive(requestedActiveStatus);
+                userService.updateUser(user);
             }
 
             String successValue =
@@ -100,27 +83,22 @@ public final class UserStatusServlet extends HttpServlet {
                             + successValue;
 
             response.sendRedirect(
-                    response.encodeRedirectURL(
-                            redirectUrl
-                    )
+                    response.encodeRedirectURL(redirectUrl)
             );
 
         } catch (ValidationException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_BAD_REQUEST,
                     exception.getMessage()
             );
 
         } catch (NotFoundException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_NOT_FOUND,
                     exception.getMessage()
             );
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to change the user account status.",
                     exception
@@ -133,13 +111,8 @@ public final class UserStatusServlet extends HttpServlet {
         }
     }
 
-    private long parseUserId(
-            String userIdValue
-    ) {
-
-        if (userIdValue == null
-                || userIdValue.isBlank()) {
-
+    private long parseUserId(String userIdValue) {
+        if (userIdValue == null || userIdValue.isBlank()) {
             throw new ValidationException(
                     "User ID must be provided."
             );
@@ -147,12 +120,9 @@ public final class UserStatusServlet extends HttpServlet {
 
         try {
             long userId =
-                    Long.parseLong(
-                            userIdValue.trim()
-                    );
+                    Long.parseLong(userIdValue.trim());
 
             if (userId <= 0) {
-
                 throw new ValidationException(
                         "User ID must be greater than zero."
                 );
@@ -161,39 +131,26 @@ public final class UserStatusServlet extends HttpServlet {
             return userId;
 
         } catch (NumberFormatException exception) {
-
             throw new ValidationException(
                     "User ID must be a valid number."
             );
         }
     }
 
-    private boolean parseActiveStatus(
-            String activeValue
-    ) {
-
-        if (activeValue == null
-                || activeValue.isBlank()) {
-
+    private boolean parseActiveStatus(String activeValue) {
+        if (activeValue == null || activeValue.isBlank()) {
             throw new ValidationException(
                     "User status must be provided."
             );
         }
 
-        String normalizedValue =
-                activeValue.trim();
+        String normalizedValue = activeValue.trim();
 
-        if ("true".equalsIgnoreCase(
-                normalizedValue
-        )) {
-
+        if ("true".equalsIgnoreCase(normalizedValue)) {
             return true;
         }
 
-        if ("false".equalsIgnoreCase(
-                normalizedValue
-        )) {
-
+        if ("false".equalsIgnoreCase(normalizedValue)) {
             return false;
         }
 
@@ -206,32 +163,24 @@ public final class UserStatusServlet extends HttpServlet {
             HttpServletRequest request,
             User targetUser
     ) {
-
-        HttpSession session =
-                request.getSession(false);
+        HttpSession session = request.getSession(false);
 
         if (session == null) {
             return;
         }
 
-        Object authenticatedUserAttribute =
-                session.getAttribute(
-                        SessionConstants.AUTHENTICATED_USER
-                );
+        Object authenticatedUser = session.getAttribute(
+                SessionConstants.AUTHENTICATED_USER
+        );
 
-        if (!(authenticatedUserAttribute
-                instanceof SessionUser sessionUser)) {
-
+        if (!(authenticatedUser instanceof SessionUser sessionUser)) {
             return;
         }
 
         boolean changingCurrentAccount =
-                sessionUser.getId().equals(
-                        targetUser.getId()
-                );
+                sessionUser.getId().equals(targetUser.getId());
 
         if (changingCurrentAccount) {
-
             throw new ValidationException(
                     "You cannot activate or deactivate "
                             + "your currently signed-in account."

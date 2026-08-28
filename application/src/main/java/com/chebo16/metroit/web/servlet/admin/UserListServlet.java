@@ -36,72 +36,37 @@ public final class UserListServlet extends HttpServlet {
     ) throws ServletException, IOException {
 
         try {
-            List<User> users =
-                    userService.getAllUsers();
+            List<User> users = userService.getAllUsers();
 
-            long activeUsers =
-                    users.stream()
-                            .filter(User::isActive)
-                            .count();
+            long activeUsers = users.stream()
+                    .filter(User::isActive)
+                    .count();
 
             long inactiveUsers =
                     users.size() - activeUsers;
 
-            long adminUsers =
-                    users.stream()
-                            .filter(user ->
-                                    user.getRole()
-                                            == UserRole.ADMIN
-                            )
-                            .count();
+            long adminUsers = users.stream()
+                    .filter(user -> user.getRole() == UserRole.ADMIN)
+                    .count();
 
-            long technicianUsers =
-                    users.stream()
-                            .filter(user ->
-                                    user.getRole()
-                                            == UserRole.TECHNICIAN
-                            )
-                            .count();
+            long technicianUsers = users.stream()
+                    .filter(user -> user.getRole() == UserRole.TECHNICIAN)
+                    .count();
 
-            request.setAttribute(
-                    "users",
-                    users
-            );
-
-            request.setAttribute(
-                    "totalUsers",
-                    users.size()
-            );
-
-            request.setAttribute(
-                    "activeUsers",
-                    activeUsers
-            );
-
-            request.setAttribute(
-                    "inactiveUsers",
-                    inactiveUsers
-            );
-
-            request.setAttribute(
-                    "adminUsers",
-                    adminUsers
-            );
-
+            request.setAttribute("users", users);
+            request.setAttribute("totalUsers", users.size());
+            request.setAttribute("activeUsers", activeUsers);
+            request.setAttribute("inactiveUsers", inactiveUsers);
+            request.setAttribute("adminUsers", adminUsers);
             request.setAttribute(
                     "technicianUsers",
                     technicianUsers
             );
 
-            request.getRequestDispatcher(
-                    USER_LIST_VIEW
-            ).forward(
-                    request,
-                    response
-            );
+            request.getRequestDispatcher(USER_LIST_VIEW)
+                    .forward(request, response);
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to load the user list.",
                     exception

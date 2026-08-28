@@ -9,7 +9,6 @@ import com.chebo16.metroit.exception.ValidationException;
 import com.chebo16.metroit.model.Equipment;
 import com.chebo16.metroit.model.Incident;
 import com.chebo16.metroit.model.User;
-import com.chebo16.metroit.model.enums.IncidentPriority;
 import com.chebo16.metroit.model.enums.IncidentStatus;
 import com.chebo16.metroit.model.enums.UserRole;
 
@@ -53,10 +52,8 @@ public final class IncidentService {
     }
 
     public List<Incident> getAllIncidents() {
-
         try {
             return incidentDAO.findAll();
-
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to load incidents.",
@@ -66,34 +63,22 @@ public final class IncidentService {
     }
 
     public Incident getIncidentById(long incidentId) {
-
-        validateId(
-                incidentId,
-                "Incident ID"
-        );
+        validateId(incidentId, "Incident ID");
 
         try {
             return incidentDAO.findById(incidentId)
-                    .orElseThrow(() ->
-                            new NotFoundException(
-                                    "Incident was not found: "
-                                            + incidentId
-                            )
-                    );
-
+                    .orElseThrow(() -> new NotFoundException(
+                            "Incident was not found: " + incidentId
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to load incident with ID: "
-                            + incidentId,
+                    "Failed to load incident with ID: " + incidentId,
                     exception
             );
         }
     }
 
-    public List<Incident> getIncidentsByStatus(
-            IncidentStatus status
-    ) {
-
+    public List<Incident> getIncidentsByStatus(IncidentStatus status) {
         if (status == null) {
             throw new ValidationException(
                     "Incident status must not be null."
@@ -102,36 +87,23 @@ public final class IncidentService {
 
         try {
             return incidentDAO.findByStatus(status);
-
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to load incidents by status: "
-                            + status,
+                    "Failed to load incidents by status: " + status,
                     exception
             );
         }
     }
 
-    public List<Incident> getIncidentsByTechnician(
-            long technicianId
-    ) {
-
-        validateId(
-                technicianId,
-                "Technician ID"
-        );
-
+    public List<Incident> getIncidentsByTechnician(long technicianId) {
+        validateId(technicianId, "Technician ID");
         validateActiveTechnician(technicianId);
 
         try {
-            return incidentDAO.findByTechnicianId(
-                    technicianId
-            );
-
+            return incidentDAO.findByTechnicianId(technicianId);
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to load incidents assigned "
-                            + "to technician ID: "
+                    "Failed to load incidents assigned to technician ID: "
                             + technicianId,
                     exception
             );
@@ -139,7 +111,6 @@ public final class IncidentService {
     }
 
     public Incident createIncident(Incident incident) {
-
         Objects.requireNonNull(
                 incident,
                 "Incident must not be null."
@@ -148,9 +119,7 @@ public final class IncidentService {
         normalizeIncident(incident);
         validateIncidentFields(incident);
 
-        validateEquipmentExists(
-                incident.getEquipmentId()
-        );
+        validateEquipmentExists(incident.getEquipmentId());
 
         validateUserExists(
                 incident.getCreatedById(),
@@ -170,17 +139,12 @@ public final class IncidentService {
         incident.setSolutionDescription(null);
 
         try {
-            long generatedId =
-                    incidentDAO.insert(incident);
+            long generatedId = incidentDAO.insert(incident);
 
             return incidentDAO.findById(generatedId)
-                    .orElseThrow(() ->
-                            new ServiceException(
-                                    "Incident was created, "
-                                            + "but could not be reloaded."
-                            )
-                    );
-
+                    .orElseThrow(() -> new ServiceException(
+                            "Incident was created, but could not be reloaded."
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to create incident.",
@@ -190,7 +154,6 @@ public final class IncidentService {
     }
 
     public Incident updateIncident(Incident incident) {
-
         Objects.requireNonNull(
                 incident,
                 "Incident must not be null."
@@ -202,38 +165,22 @@ public final class IncidentService {
             );
         }
 
-        validateId(
-                incident.getId(),
-                "Incident ID"
-        );
+        validateId(incident.getId(), "Incident ID");
 
         Incident existingIncident =
                 getIncidentById(incident.getId());
 
-        if (existingIncident.getStatus()
-                == IncidentStatus.CLOSED) {
-
+        if (existingIncident.getStatus() == IncidentStatus.CLOSED) {
             throw new ValidationException(
                     "Closed incident cannot be edited."
             );
         }
 
-        /*
-         * Once an incident is resolved, responsibility
-         * for the completed work must remain unchanged.
-         *
-         * If the incident is reopened to IN_PROGRESS,
-         * technician assignment may be changed again.
-         */
-        if (existingIncident.getStatus()
-                == IncidentStatus.RESOLVED
+        if (existingIncident.getStatus() == IncidentStatus.RESOLVED
                 && !Objects.equals(
-                existingIncident
-                        .getAssignedTechnicianId(),
-                incident
-                        .getAssignedTechnicianId()
+                existingIncident.getAssignedTechnicianId(),
+                incident.getAssignedTechnicianId()
         )) {
-
             throw new ValidationException(
                     "Technician assignment cannot be changed "
                             + "for a resolved incident."
@@ -243,9 +190,7 @@ public final class IncidentService {
         normalizeIncident(incident);
         validateIncidentFields(incident);
 
-        validateEquipmentExists(
-                incident.getEquipmentId()
-        );
+        validateEquipmentExists(incident.getEquipmentId());
 
         validateUserExists(
                 incident.getCreatedById(),
@@ -258,55 +203,28 @@ public final class IncidentService {
             );
         }
 
-        /*
-         * General editing must not change the incident lifecycle.
-         * Status and timestamps are preserved from the database.
-         */
-        incident.setStatus(
-                existingIncident.getStatus()
-        );
-
-        incident.setCreatedAt(
-                existingIncident.getCreatedAt()
-        );
-
-        incident.setStartedAt(
-                existingIncident.getStartedAt()
-        );
-
-        incident.setResolvedAt(
-                existingIncident.getResolvedAt()
-        );
-
-        incident.setClosedAt(
-                existingIncident.getClosedAt()
-        );
-
+        incident.setStatus(existingIncident.getStatus());
+        incident.setCreatedAt(existingIncident.getCreatedAt());
+        incident.setStartedAt(existingIncident.getStartedAt());
+        incident.setResolvedAt(existingIncident.getResolvedAt());
+        incident.setClosedAt(existingIncident.getClosedAt());
         incident.setSolutionDescription(
                 existingIncident.getSolutionDescription()
         );
 
         try {
-            boolean updated =
-                    incidentDAO.update(incident);
+            boolean updated = incidentDAO.update(incident);
 
             if (!updated) {
                 throw new NotFoundException(
-                        "Incident was not found: "
-                                + incident.getId()
+                        "Incident was not found: " + incident.getId()
                 );
             }
 
-            return incidentDAO.findById(
-                            incident.getId()
-                    )
-                    .orElseThrow(() ->
-                            new ServiceException(
-                                    "Incident was updated, "
-                                            + "but could not be reloaded."
-                            )
-                    );
-
+            return incidentDAO.findById(incident.getId())
+                    .orElseThrow(() -> new ServiceException(
+                            "Incident was updated, but could not be reloaded."
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to update incident with ID: "
@@ -320,49 +238,31 @@ public final class IncidentService {
             long incidentId,
             long technicianId
     ) {
+        validateId(incidentId, "Incident ID");
+        validateId(technicianId, "Technician ID");
 
-        validateId(
-                incidentId,
-                "Incident ID"
-        );
+        Incident incident = getIncidentById(incidentId);
 
-        validateId(
-                technicianId,
-                "Technician ID"
-        );
-
-        Incident incident =
-                getIncidentById(incidentId);
-
-        validateTechnicianAssignmentAllowed(
-                incident
-        );
-
+        validateTechnicianAssignmentAllowed(incident);
         validateActiveTechnician(technicianId);
 
         try {
-            boolean assigned =
-                    incidentDAO.assignTechnician(
-                            incidentId,
-                            technicianId
-                    );
+            boolean assigned = incidentDAO.assignTechnician(
+                    incidentId,
+                    technicianId
+            );
 
             if (!assigned) {
                 throw new NotFoundException(
-                        "Incident was not found: "
-                                + incidentId
+                        "Incident was not found: " + incidentId
                 );
             }
 
             return incidentDAO.findById(incidentId)
-                    .orElseThrow(() ->
-                            new ServiceException(
-                                    "Technician was assigned, "
-                                            + "but the incident could "
-                                            + "not be reloaded."
-                            )
-                    );
-
+                    .orElseThrow(() -> new ServiceException(
+                            "Technician was assigned, "
+                                    + "but the incident could not be reloaded."
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to assign technician "
@@ -375,46 +275,32 @@ public final class IncidentService {
     }
 
     public Incident unassignTechnician(long incidentId) {
+        validateId(incidentId, "Incident ID");
 
-        validateId(
-                incidentId,
-                "Incident ID"
-        );
+        Incident incident = getIncidentById(incidentId);
 
-        Incident incident =
-                getIncidentById(incidentId);
-
-        validateTechnicianAssignmentAllowed(
-                incident
-        );
+        validateTechnicianAssignmentAllowed(incident);
 
         try {
-            boolean updated =
-                    incidentDAO.assignTechnician(
-                            incidentId,
-                            null
-                    );
+            boolean updated = incidentDAO.assignTechnician(
+                    incidentId,
+                    null
+            );
 
             if (!updated) {
                 throw new NotFoundException(
-                        "Incident was not found: "
-                                + incidentId
+                        "Incident was not found: " + incidentId
                 );
             }
 
             return incidentDAO.findById(incidentId)
-                    .orElseThrow(() ->
-                            new ServiceException(
-                                    "Technician was removed, "
-                                            + "but the incident could "
-                                            + "not be reloaded."
-                            )
-                    );
-
+                    .orElseThrow(() -> new ServiceException(
+                            "Technician was removed, "
+                                    + "but the incident could not be reloaded."
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to remove technician "
-                            + "from incident ID: "
+                    "Failed to remove technician from incident ID: "
                             + incidentId,
                     exception
             );
@@ -426,11 +312,7 @@ public final class IncidentService {
             IncidentStatus newStatus,
             String solutionDescription
     ) {
-
-        validateId(
-                incidentId,
-                "Incident ID"
-        );
+        validateId(incidentId, "Incident ID");
 
         if (newStatus == null) {
             throw new ValidationException(
@@ -438,16 +320,10 @@ public final class IncidentService {
             );
         }
 
-        Incident incident =
-                getIncidentById(incidentId);
+        Incident incident = getIncidentById(incidentId);
+        IncidentStatus currentStatus = incident.getStatus();
 
-        IncidentStatus currentStatus =
-                incident.getStatus();
-
-        validateStatusTransition(
-                currentStatus,
-                newStatus
-        );
+        validateStatusTransition(currentStatus, newStatus);
 
         String normalizedSolution =
                 trimToNull(solutionDescription);
@@ -466,39 +342,31 @@ public final class IncidentService {
 
             throw new ValidationException(
                     "A technician must be assigned before "
-                            + "the incident can be moved "
-                            + "to IN_PROGRESS."
+                            + "the incident can be moved to IN_PROGRESS."
             );
         }
 
         try {
-            boolean updated =
-                    incidentDAO.updateStatus(
-                            incidentId,
-                            newStatus,
-                            normalizedSolution
-                    );
+            boolean updated = incidentDAO.updateStatus(
+                    incidentId,
+                    newStatus,
+                    normalizedSolution
+            );
 
             if (!updated) {
                 throw new NotFoundException(
-                        "Incident was not found: "
-                                + incidentId
+                        "Incident was not found: " + incidentId
                 );
             }
 
             return incidentDAO.findById(incidentId)
-                    .orElseThrow(() ->
-                            new ServiceException(
-                                    "Incident status was updated, "
-                                            + "but the incident could "
-                                            + "not be reloaded."
-                            )
-                    );
-
+                    .orElseThrow(() -> new ServiceException(
+                            "Incident status was updated, "
+                                    + "but the incident could not be reloaded."
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to change incident status "
-                            + "for incident ID: "
+                    "Failed to change incident status for incident ID: "
                             + incidentId,
                     exception
             );
@@ -509,16 +377,13 @@ public final class IncidentService {
             IncidentStatus currentStatus,
             IncidentStatus newStatus
     ) {
-
         if (currentStatus == newStatus) {
             throw new ValidationException(
-                    "Incident already has status: "
-                            + currentStatus
+                    "Incident already has status: " + currentStatus
             );
         }
 
         boolean allowed = switch (currentStatus) {
-
             case NEW ->
                     newStatus == IncidentStatus.IN_PROGRESS;
 
@@ -527,8 +392,7 @@ public final class IncidentService {
 
             case RESOLVED ->
                     newStatus == IncidentStatus.IN_PROGRESS
-                            || newStatus
-                            == IncidentStatus.CLOSED;
+                            || newStatus == IncidentStatus.CLOSED;
 
             case CLOSED -> false;
         };
@@ -546,19 +410,14 @@ public final class IncidentService {
     private void validateTechnicianAssignmentAllowed(
             Incident incident
     ) {
-
-        if (incident.getStatus()
-                == IncidentStatus.RESOLVED) {
-
+        if (incident.getStatus() == IncidentStatus.RESOLVED) {
             throw new ValidationException(
                     "Technician assignment cannot be changed "
                             + "for a resolved incident."
             );
         }
 
-        if (incident.getStatus()
-                == IncidentStatus.CLOSED) {
-
+        if (incident.getStatus() == IncidentStatus.CLOSED) {
             throw new ValidationException(
                     "Technician assignment cannot be changed "
                             + "for a closed incident."
@@ -566,36 +425,23 @@ public final class IncidentService {
         }
     }
 
-    private void validateEquipmentExists(
-            Long equipmentId
-    ) {
-
-        validateId(
-                equipmentId,
-                "Equipment ID"
-        );
+    private void validateEquipmentExists(Long equipmentId) {
+        validateId(equipmentId, "Equipment ID");
 
         try {
-            Equipment equipment =
-                    equipmentDAO.findById(equipmentId)
-                            .orElseThrow(() ->
-                                    new NotFoundException(
-                                            "Equipment was not found: "
-                                                    + equipmentId
-                                    )
-                            );
+            Equipment equipment = equipmentDAO.findById(equipmentId)
+                    .orElseThrow(() -> new NotFoundException(
+                            "Equipment was not found: " + equipmentId
+                    ));
 
             if (equipment.getId() == null) {
                 throw new NotFoundException(
-                        "Equipment was not found: "
-                                + equipmentId
+                        "Equipment was not found: " + equipmentId
                 );
             }
-
         } catch (SQLException exception) {
             throw new ServiceException(
-                    "Failed to validate equipment ID: "
-                            + equipmentId,
+                    "Failed to validate equipment ID: " + equipmentId,
                     exception
             );
         }
@@ -605,22 +451,13 @@ public final class IncidentService {
             Long userId,
             String fieldName
     ) {
-
-        validateId(
-                userId,
-                fieldName + " ID"
-        );
+        validateId(userId, fieldName + " ID");
 
         try {
             userDAO.findById(userId)
-                    .orElseThrow(() ->
-                            new NotFoundException(
-                                    fieldName
-                                            + " was not found: "
-                                            + userId
-                            )
-                    );
-
+                    .orElseThrow(() -> new NotFoundException(
+                            fieldName + " was not found: " + userId
+                    ));
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to validate "
@@ -632,28 +469,16 @@ public final class IncidentService {
         }
     }
 
-    private void validateActiveTechnician(
-            Long technicianId
-    ) {
-
-        validateId(
-                technicianId,
-                "Technician ID"
-        );
+    private void validateActiveTechnician(Long technicianId) {
+        validateId(technicianId, "Technician ID");
 
         try {
-            User technician =
-                    userDAO.findById(technicianId)
-                            .orElseThrow(() ->
-                                    new NotFoundException(
-                                            "Technician was not found: "
-                                                    + technicianId
-                                    )
-                            );
+            User technician = userDAO.findById(technicianId)
+                    .orElseThrow(() -> new NotFoundException(
+                            "Technician was not found: " + technicianId
+                    ));
 
-            if (technician.getRole()
-                    != UserRole.TECHNICIAN) {
-
+            if (technician.getRole() != UserRole.TECHNICIAN) {
                 throw new ValidationException(
                         "Assigned user is not a technician: "
                                 + technicianId
@@ -666,7 +491,6 @@ public final class IncidentService {
                                 + technicianId
                 );
             }
-
         } catch (SQLException exception) {
             throw new ServiceException(
                     "Failed to validate technician ID: "
@@ -676,10 +500,7 @@ public final class IncidentService {
         }
     }
 
-    private void validateIncidentFields(
-            Incident incident
-    ) {
-
+    private void validateIncidentFields(Incident incident) {
         requireText(
                 incident.getTitle(),
                 "Incident title"
@@ -703,51 +524,32 @@ public final class IncidentService {
         );
     }
 
-    private void normalizeIncident(
-            Incident incident
-    ) {
-
+    private void normalizeIncident(Incident incident) {
         incident.setTitle(
-                trimRequired(
-                        incident.getTitle()
-                )
+                trimRequired(incident.getTitle())
         );
 
         incident.setDescription(
-                trimRequired(
-                        incident.getDescription()
-                )
+                trimRequired(incident.getDescription())
         );
 
         incident.setSolutionDescription(
-                trimToNull(
-                        incident.getSolutionDescription()
-                )
+                trimToNull(incident.getSolutionDescription())
         );
     }
 
-    private void validateId(
-            Long id,
-            String fieldName
-    ) {
-
+    private void validateId(Long id, String fieldName) {
         if (id == null || id <= 0) {
             throw new ValidationException(
-                    fieldName
-                            + " must be greater than zero."
+                    fieldName + " must be greater than zero."
             );
         }
     }
 
-    private void requireText(
-            String value,
-            String fieldName
-    ) {
-
+    private void requireText(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new ValidationException(
-                    fieldName
-                            + " must not be empty."
+                    fieldName + " must not be empty."
             );
         }
     }
@@ -757,10 +559,7 @@ public final class IncidentService {
             int maximumLength,
             String fieldName
     ) {
-
-        if (value != null
-                && value.length() > maximumLength) {
-
+        if (value != null && value.length() > maximumLength) {
             throw new ValidationException(
                     fieldName
                             + " must not exceed "
@@ -771,7 +570,6 @@ public final class IncidentService {
     }
 
     private String trimRequired(String value) {
-
         if (value == null) {
             return null;
         }
@@ -780,13 +578,11 @@ public final class IncidentService {
     }
 
     private String trimToNull(String value) {
-
         if (value == null) {
             return null;
         }
 
-        String trimmedValue =
-                value.trim();
+        String trimmedValue = value.trim();
 
         if (trimmedValue.isEmpty()) {
             return null;

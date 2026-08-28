@@ -21,8 +21,7 @@ import java.util.Locale;
         name = "EquipmentEditServlet",
         urlPatterns = "/admin/equipment/edit"
 )
-public final class EquipmentEditServlet
-        extends HttpServlet {
+public final class EquipmentEditServlet extends HttpServlet {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -41,41 +40,27 @@ public final class EquipmentEditServlet
 
         try {
             long equipmentId =
-                    parseEquipmentId(
-                            request.getParameter("id")
-                    );
+                    parseEquipmentId(request.getParameter("id"));
 
             Equipment equipment =
-                    equipmentService.getEquipmentById(
-                            equipmentId
-                    );
+                    equipmentService.getEquipmentById(equipmentId);
 
-            prepareEditForm(
-                    request,
-                    equipment
-            );
-
-            forwardToForm(
-                    request,
-                    response
-            );
+            prepareEditForm(request, equipment);
+            forwardToForm(request, response);
 
         } catch (ValidationException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_BAD_REQUEST,
                     exception.getMessage()
             );
 
         } catch (NotFoundException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_NOT_FOUND,
                     exception.getMessage()
             );
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to load equipment.",
                     exception
@@ -94,131 +79,77 @@ public final class EquipmentEditServlet
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        request.setCharacterEncoding(
-                StandardCharsets.UTF_8.name()
-        );
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         String equipmentIdValue =
                 request.getParameter("id");
 
         String inventoryNumber =
                 normalizeRequiredText(
-                        request.getParameter(
-                                "inventoryNumber"
-                        )
+                        request.getParameter("inventoryNumber")
                 );
 
         String name =
                 normalizeRequiredText(
-                        request.getParameter(
-                                "name"
-                        )
+                        request.getParameter("name")
                 );
 
         String type =
                 normalizeRequiredText(
-                        request.getParameter(
-                                "type"
-                        )
+                        request.getParameter("type")
                 );
 
         String manufacturer =
                 normalizeOptionalText(
-                        request.getParameter(
-                                "manufacturer"
-                        )
+                        request.getParameter("manufacturer")
                 );
 
         String model =
                 normalizeOptionalText(
-                        request.getParameter(
-                                "model"
-                        )
+                        request.getParameter("model")
                 );
 
         String serialNumber =
                 normalizeOptionalText(
-                        request.getParameter(
-                                "serialNumber"
-                        )
+                        request.getParameter("serialNumber")
                 );
 
         String ipAddress =
                 normalizeOptionalText(
-                        request.getParameter(
-                                "ipAddress"
-                        )
+                        request.getParameter("ipAddress")
                 );
 
         String statusValue =
                 normalizeRequiredText(
-                        request.getParameter(
-                                "status"
-                        )
+                        request.getParameter("status")
                 );
 
         String notes =
                 normalizeOptionalText(
-                        request.getParameter(
-                                "notes"
-                        )
+                        request.getParameter("notes")
                 );
 
         try {
             long equipmentId =
-                    parseEquipmentId(
-                            equipmentIdValue
-                    );
+                    parseEquipmentId(equipmentIdValue);
 
             EquipmentStatus status =
-                    parseStatus(
-                            statusValue
-                    );
+                    parseStatus(statusValue);
 
             Equipment existingEquipment =
-                    equipmentService.getEquipmentById(
-                            equipmentId
-                    );
+                    equipmentService.getEquipmentById(equipmentId);
 
-            existingEquipment.setInventoryNumber(
-                    inventoryNumber
-            );
+            existingEquipment.setInventoryNumber(inventoryNumber);
+            existingEquipment.setName(name);
+            existingEquipment.setType(type);
+            existingEquipment.setManufacturer(manufacturer);
+            existingEquipment.setModel(model);
+            existingEquipment.setSerialNumber(serialNumber);
+            existingEquipment.setIpAddress(ipAddress);
+            existingEquipment.setStatus(status);
+            existingEquipment.setNotes(notes);
 
-            existingEquipment.setName(
-                    name
-            );
-
-            existingEquipment.setType(
-                    type
-            );
-
-            existingEquipment.setManufacturer(
-                    manufacturer
-            );
-
-            existingEquipment.setModel(
-                    model
-            );
-
-            existingEquipment.setSerialNumber(
-                    serialNumber
-            );
-
-            existingEquipment.setIpAddress(
-                    ipAddress
-            );
-
-            existingEquipment.setStatus(
-                    status
-            );
-
-            existingEquipment.setNotes(
-                    notes
-            );
-
-            equipmentService.updateEquipment(
-                    existingEquipment
-            );
+            equipmentService.updateEquipment(existingEquipment);
 
             response.sendRedirect(
                     response.encodeRedirectURL(
@@ -229,7 +160,6 @@ public final class EquipmentEditServlet
             );
 
         } catch (NotFoundException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_NOT_FOUND,
                     exception.getMessage()
@@ -257,13 +187,9 @@ public final class EquipmentEditServlet
                     exception.getMessage()
             );
 
-            forwardToForm(
-                    request,
-                    response
-            );
+            forwardToForm(request, response);
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to update equipment.",
                     exception
@@ -289,10 +215,7 @@ public final class EquipmentEditServlet
                             + "Please try again later."
             );
 
-            forwardToForm(
-                    request,
-                    response
-            );
+            forwardToForm(request, response);
         }
     }
 
@@ -300,12 +223,9 @@ public final class EquipmentEditServlet
             HttpServletRequest request,
             Equipment equipment
     ) {
-
         prepareEditForm(
                 request,
-                String.valueOf(
-                        equipment.getId()
-                ),
+                String.valueOf(equipment.getId()),
                 equipment.getInventoryNumber(),
                 equipment.getName(),
                 equipment.getType(),
@@ -331,16 +251,8 @@ public final class EquipmentEditServlet
             String statusValue,
             String notes
     ) {
-
-        request.setAttribute(
-                "pageTitle",
-                "Edit equipment"
-        );
-
-        request.setAttribute(
-                "formMode",
-                "edit"
-        );
+        request.setAttribute("pageTitle", "Edit equipment");
+        request.setAttribute("formMode", "edit");
 
         request.setAttribute(
                 "formAction",
@@ -403,16 +315,12 @@ public final class EquipmentEditServlet
                 valueOrEmpty(notes)
         );
 
-        if (statusValue == null
-                || statusValue.isBlank()) {
-
+        if (statusValue == null || statusValue.isBlank()) {
             request.setAttribute(
                     "selectedStatus",
                     EquipmentStatus.ACTIVE.name()
             );
-
         } else {
-
             request.setAttribute(
                     "selectedStatus",
                     statusValue
@@ -420,10 +328,7 @@ public final class EquipmentEditServlet
         }
     }
 
-    private long parseEquipmentId(
-            String equipmentIdValue
-    ) {
-
+    private long parseEquipmentId(String equipmentIdValue) {
         if (equipmentIdValue == null
                 || equipmentIdValue.isBlank()) {
 
@@ -434,35 +339,25 @@ public final class EquipmentEditServlet
 
         try {
             long equipmentId =
-                    Long.parseLong(
-                            equipmentIdValue.trim()
-                    );
+                    Long.parseLong(equipmentIdValue.trim());
 
             if (equipmentId <= 0) {
-
                 throw new ValidationException(
-                        "Equipment ID must be greater "
-                                + "than zero."
+                        "Equipment ID must be greater than zero."
                 );
             }
 
             return equipmentId;
 
         } catch (NumberFormatException exception) {
-
             throw new ValidationException(
                     "Equipment ID must be a valid number."
             );
         }
     }
 
-    private EquipmentStatus parseStatus(
-            String statusValue
-    ) {
-
-        if (statusValue == null
-                || statusValue.isBlank()) {
-
+    private EquipmentStatus parseStatus(String statusValue) {
+        if (statusValue == null || statusValue.isBlank()) {
             throw new ValidationException(
                     "Equipment status must be selected."
             );
@@ -470,23 +365,17 @@ public final class EquipmentEditServlet
 
         try {
             return EquipmentStatus.valueOf(
-                    statusValue
-                            .trim()
+                    statusValue.trim()
                             .toUpperCase(Locale.ROOT)
             );
-
         } catch (IllegalArgumentException exception) {
-
             throw new ValidationException(
                     "Selected equipment status is invalid."
             );
         }
     }
 
-    private String normalizeRequiredText(
-            String value
-    ) {
-
+    private String normalizeRequiredText(String value) {
         if (value == null) {
             return "";
         }
@@ -494,16 +383,12 @@ public final class EquipmentEditServlet
         return value.trim();
     }
 
-    private String normalizeOptionalText(
-            String value
-    ) {
-
+    private String normalizeOptionalText(String value) {
         if (value == null) {
             return null;
         }
 
-        String normalizedValue =
-                value.trim();
+        String normalizedValue = value.trim();
 
         if (normalizedValue.isEmpty()) {
             return null;
@@ -512,10 +397,7 @@ public final class EquipmentEditServlet
         return normalizedValue;
     }
 
-    private String valueOrEmpty(
-            String value
-    ) {
-
+    private String valueOrEmpty(String value) {
         if (value == null) {
             return "";
         }
@@ -528,11 +410,7 @@ public final class EquipmentEditServlet
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        request.getRequestDispatcher(
-                EQUIPMENT_FORM_VIEW
-        ).forward(
-                request,
-                response
-        );
+        request.getRequestDispatcher(EQUIPMENT_FORM_VIEW)
+                .forward(request, response);
     }
 }

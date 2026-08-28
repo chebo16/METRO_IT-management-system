@@ -23,8 +23,7 @@ import java.nio.charset.StandardCharsets;
         name = "IncidentStatusServlet",
         urlPatterns = "/incidents/status"
 )
-public final class IncidentStatusServlet
-        extends HttpServlet {
+public final class IncidentStatusServlet extends HttpServlet {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -50,48 +49,32 @@ public final class IncidentStatusServlet
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        request.setCharacterEncoding(
-                StandardCharsets.UTF_8.name()
-        );
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        HttpSession session =
-                request.getSession(false);
-
-        SessionUser sessionUser =
-                getSessionUser(
-                        session
-                );
+        HttpSession session = request.getSession(false);
+        SessionUser sessionUser = getSessionUser(session);
 
         if (sessionUser == null) {
-
             response.sendError(
                     HttpServletResponse.SC_UNAUTHORIZED,
                     "Authentication is required."
             );
-
             return;
         }
 
         try {
-
             long incidentId =
                     parseIncidentId(
-                            request.getParameter(
-                                    "incidentId"
-                            )
+                            request.getParameter("incidentId")
                     );
 
             IncidentStatus requestedStatus =
                     parseStatus(
-                            request.getParameter(
-                                    "status"
-                            )
+                            request.getParameter("status")
                     );
 
             Incident incident =
-                    incidentService.getIncidentById(
-                            incidentId
-                    );
+                    incidentService.getIncidentById(incidentId);
 
             String solutionDescription =
                     normalizeParameter(
@@ -101,14 +84,11 @@ public final class IncidentStatusServlet
                     );
 
             if (sessionUser.isAdmin()) {
-
                 updateAsAdministrator(
                         incident,
                         requestedStatus
                 );
-
             } else {
-
                 updateAsTechnician(
                         incident,
                         requestedStatus,
@@ -125,27 +105,22 @@ public final class IncidentStatusServlet
                             + "&success=status-updated";
 
             response.sendRedirect(
-                    response.encodeRedirectURL(
-                            redirectUrl
-                    )
+                    response.encodeRedirectURL(redirectUrl)
             );
 
         } catch (ValidationException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_BAD_REQUEST,
                     exception.getMessage()
             );
 
         } catch (NotFoundException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_NOT_FOUND,
                     exception.getMessage()
             );
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to update incident status.",
                     exception
@@ -164,18 +139,15 @@ public final class IncidentStatusServlet
             String solutionDescription,
             long technicianId
     ) {
-
         validateAssignedTechnician(
                 incident,
                 technicianId
         );
 
-        IncidentStatus currentStatus =
-                incident.getStatus();
+        IncidentStatus currentStatus = incident.getStatus();
 
         if (currentStatus == IncidentStatus.NEW
-                && requestedStatus
-                == IncidentStatus.IN_PROGRESS) {
+                && requestedStatus == IncidentStatus.IN_PROGRESS) {
 
             incidentService.changeStatus(
                     incident.getId(),
@@ -186,10 +158,8 @@ public final class IncidentStatusServlet
             return;
         }
 
-        if (currentStatus
-                == IncidentStatus.IN_PROGRESS
-                && requestedStatus
-                == IncidentStatus.RESOLVED) {
+        if (currentStatus == IncidentStatus.IN_PROGRESS
+                && requestedStatus == IncidentStatus.RESOLVED) {
 
             if (solutionDescription == null
                     || solutionDescription.isBlank()) {
@@ -217,18 +187,13 @@ public final class IncidentStatusServlet
             Incident incident,
             IncidentStatus requestedStatus
     ) {
-
-        if (incident.getStatus()
-                != IncidentStatus.RESOLVED) {
-
+        if (incident.getStatus() != IncidentStatus.RESOLVED) {
             throw new ValidationException(
                     "Only a resolved incident can be closed."
             );
         }
 
-        if (requestedStatus
-                != IncidentStatus.CLOSED) {
-
+        if (requestedStatus != IncidentStatus.CLOSED) {
             throw new ValidationException(
                     "Administrator can only close a resolved incident."
             );
@@ -256,70 +221,49 @@ public final class IncidentStatusServlet
             Incident incident,
             long technicianId
     ) {
-
         Long assignedTechnicianId =
                 incident.getAssignedTechnicianId();
 
         if (assignedTechnicianId == null) {
-
             throw new ValidationException(
                     "The incident is not assigned to a technician."
             );
         }
 
-        if (assignedTechnicianId.longValue()
-                != technicianId) {
-
+        if (assignedTechnicianId.longValue() != technicianId) {
             throw new ValidationException(
                     "You can only update incidents assigned to you."
             );
         }
     }
 
-    private SessionUser getSessionUser(
-            HttpSession session
-    ) {
-
+    private SessionUser getSessionUser(HttpSession session) {
         if (session == null) {
             return null;
         }
 
-        Object authenticatedUser =
-                session.getAttribute(
-                        SessionConstants.AUTHENTICATED_USER
-                );
+        Object authenticatedUser = session.getAttribute(
+                SessionConstants.AUTHENTICATED_USER
+        );
 
-        if (authenticatedUser
-                instanceof SessionUser) {
-
-            return (SessionUser)
-                    authenticatedUser;
+        if (authenticatedUser instanceof SessionUser sessionUser) {
+            return sessionUser;
         }
 
         return null;
     }
 
-    private long parseIncidentId(
-            String value
-    ) {
-
-        if (value == null
-                || value.isBlank()) {
-
+    private long parseIncidentId(String value) {
+        if (value == null || value.isBlank()) {
             throw new ValidationException(
                     "Incident ID is required."
             );
         }
 
         try {
-
-            long incidentId =
-                    Long.parseLong(
-                            value.trim()
-                    );
+            long incidentId = Long.parseLong(value.trim());
 
             if (incidentId <= 0) {
-
                 throw new ValidationException(
                         "Incident ID must be greater than zero."
                 );
@@ -328,44 +272,31 @@ public final class IncidentStatusServlet
             return incidentId;
 
         } catch (NumberFormatException exception) {
-
             throw new ValidationException(
                     "Incident ID must be a valid number."
             );
         }
     }
 
-    private IncidentStatus parseStatus(
-            String value
-    ) {
-
-        if (value == null
-                || value.isBlank()) {
-
+    private IncidentStatus parseStatus(String value) {
+        if (value == null || value.isBlank()) {
             throw new ValidationException(
                     "Incident status is required."
             );
         }
 
         try {
-
             return IncidentStatus.valueOf(
-                    value.trim()
-                            .toUpperCase()
+                    value.trim().toUpperCase()
             );
-
         } catch (IllegalArgumentException exception) {
-
             throw new ValidationException(
                     "Invalid incident status."
             );
         }
     }
 
-    private String normalizeParameter(
-            String value
-    ) {
-
+    private String normalizeParameter(String value) {
         if (value == null) {
             return null;
         }

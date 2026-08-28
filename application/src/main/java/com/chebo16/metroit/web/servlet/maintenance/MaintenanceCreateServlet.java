@@ -28,8 +28,7 @@ import java.nio.charset.StandardCharsets;
         name = "MaintenanceCreateServlet",
         urlPatterns = "/maintenance/create"
 )
-public final class MaintenanceCreateServlet
-        extends HttpServlet {
+public final class MaintenanceCreateServlet extends HttpServlet {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -53,43 +52,32 @@ public final class MaintenanceCreateServlet
     ) throws ServletException, IOException {
 
         SessionUser sessionUser =
-                getSessionUser(
-                        request.getSession(false)
-                );
+                getSessionUser(request.getSession(false));
 
         if (sessionUser == null) {
-
             response.sendError(
                     HttpServletResponse.SC_UNAUTHORIZED,
                     "Authentication is required."
             );
-
             return;
         }
 
         if (sessionUser.isAdmin()) {
-
             response.sendError(
                     HttpServletResponse.SC_FORBIDDEN,
                     "Only technicians can create maintenance records."
             );
-
             return;
         }
 
         try {
-
             long incidentId =
                     parseIncidentId(
-                            request.getParameter(
-                                    "incidentId"
-                            )
+                            request.getParameter("incidentId")
                     );
 
             Incident incident =
-                    incidentService.getIncidentById(
-                            incidentId
-                    );
+                    incidentService.getIncidentById(incidentId);
 
             validateTechnicianAccess(
                     incident,
@@ -101,44 +89,29 @@ public final class MaintenanceCreateServlet
                             incident.getEquipmentId()
                     );
 
-            request.setAttribute(
-                    "incident",
-                    incident
-            );
-
-            request.setAttribute(
-                    "equipment",
-                    equipment
-            );
-
+            request.setAttribute("incident", incident);
+            request.setAttribute("equipment", equipment);
             request.setAttribute(
                     "results",
                     MaintenanceResult.values()
             );
 
-            request.getRequestDispatcher(
-                    MAINTENANCE_FORM_VIEW
-            ).forward(
-                    request,
-                    response
-            );
+            request.getRequestDispatcher(MAINTENANCE_FORM_VIEW)
+                    .forward(request, response);
 
         } catch (ValidationException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_BAD_REQUEST,
                     exception.getMessage()
             );
 
         } catch (NotFoundException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_NOT_FOUND,
                     exception.getMessage()
             );
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to load maintenance form.",
                     exception
@@ -157,48 +130,35 @@ public final class MaintenanceCreateServlet
             HttpServletResponse response
     ) throws ServletException, IOException {
 
-        request.setCharacterEncoding(
-                StandardCharsets.UTF_8.name()
-        );
+        request.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
         SessionUser sessionUser =
-                getSessionUser(
-                        request.getSession(false)
-                );
+                getSessionUser(request.getSession(false));
 
         if (sessionUser == null) {
-
             response.sendError(
                     HttpServletResponse.SC_UNAUTHORIZED,
                     "Authentication is required."
             );
-
             return;
         }
 
         if (sessionUser.isAdmin()) {
-
             response.sendError(
                     HttpServletResponse.SC_FORBIDDEN,
                     "Only technicians can create maintenance records."
             );
-
             return;
         }
 
         try {
-
             long incidentId =
                     parseIncidentId(
-                            request.getParameter(
-                                    "incidentId"
-                            )
+                            request.getParameter("incidentId")
                     );
 
             Incident incident =
-                    incidentService.getIncidentById(
-                            incidentId
-                    );
+                    incidentService.getIncidentById(incidentId);
 
             validateTechnicianAccess(
                     incident,
@@ -207,56 +167,30 @@ public final class MaintenanceCreateServlet
 
             String workDescription =
                     normalizeRequiredText(
-                            request.getParameter(
-                                    "workDescription"
-                            ),
+                            request.getParameter("workDescription"),
                             "Work description"
                     );
 
             String replacedComponents =
                     normalizeOptionalText(
-                            request.getParameter(
-                                    "replacedComponents"
-                            )
+                            request.getParameter("replacedComponents")
                     );
 
             MaintenanceResult result =
                     parseResult(
-                            request.getParameter(
-                                    "result"
-                            )
+                            request.getParameter("result")
                     );
 
-            MaintenanceRecord record =
-                    new MaintenanceRecord();
+            MaintenanceRecord record = new MaintenanceRecord();
 
-            record.setIncidentId(
-                    incident.getId()
-            );
+            record.setIncidentId(incident.getId());
+            record.setEquipmentId(incident.getEquipmentId());
+            record.setTechnicianId(sessionUser.getId());
+            record.setWorkDescription(workDescription);
+            record.setReplacedComponents(replacedComponents);
+            record.setResult(result);
 
-            record.setEquipmentId(
-                    incident.getEquipmentId()
-            );
-
-            record.setTechnicianId(
-                    sessionUser.getId()
-            );
-
-            record.setWorkDescription(
-                    workDescription
-            );
-
-            record.setReplacedComponents(
-                    replacedComponents
-            );
-
-            record.setResult(
-                    result
-            );
-
-            maintenanceRecordService.createRecord(
-                    record
-            );
+            maintenanceRecordService.createRecord(record);
 
             String redirectUrl =
                     request.getContextPath()
@@ -266,27 +200,22 @@ public final class MaintenanceCreateServlet
                             + "&success=maintenance-created";
 
             response.sendRedirect(
-                    response.encodeRedirectURL(
-                            redirectUrl
-                    )
+                    response.encodeRedirectURL(redirectUrl)
             );
 
         } catch (ValidationException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_BAD_REQUEST,
                     exception.getMessage()
             );
 
         } catch (NotFoundException exception) {
-
             response.sendError(
                     HttpServletResponse.SC_NOT_FOUND,
                     exception.getMessage()
             );
 
         } catch (ServiceException exception) {
-
             getServletContext().log(
                     "Unable to create maintenance record.",
                     exception
@@ -303,89 +232,58 @@ public final class MaintenanceCreateServlet
             Incident incident,
             long technicianId
     ) {
-
         Long assignedTechnicianId =
                 incident.getAssignedTechnicianId();
 
         if (assignedTechnicianId == null) {
-
             throw new ValidationException(
                     "The incident does not have an assigned technician."
             );
         }
 
-        if (assignedTechnicianId.longValue()
-                != technicianId) {
-
+        if (assignedTechnicianId.longValue() != technicianId) {
             throw new ValidationException(
                     "You can only record maintenance work "
                             + "for incidents assigned to you."
             );
         }
 
-        if (incident.getStatus()
-                == IncidentStatus.NEW) {
-
+        if (incident.getStatus() != IncidentStatus.IN_PROGRESS) {
             throw new ValidationException(
-                    "Maintenance work cannot be recorded "
-                            + "before the incident is started."
-            );
-        }
-
-        if (incident.getStatus()
-                == IncidentStatus.CLOSED) {
-
-            throw new ValidationException(
-                    "Maintenance work cannot be recorded "
-                            + "for a closed incident."
+                    "Maintenance work can only be recorded "
+                            + "for an incident with IN_PROGRESS status."
             );
         }
     }
 
-    private SessionUser getSessionUser(
-            HttpSession session
-    ) {
-
+    private SessionUser getSessionUser(HttpSession session) {
         if (session == null) {
             return null;
         }
 
-        Object authenticatedUser =
-                session.getAttribute(
-                        SessionConstants.AUTHENTICATED_USER
-                );
+        Object authenticatedUser = session.getAttribute(
+                SessionConstants.AUTHENTICATED_USER
+        );
 
-        if (authenticatedUser
-                instanceof SessionUser) {
-
-            return (SessionUser)
-                    authenticatedUser;
+        if (authenticatedUser instanceof SessionUser sessionUser) {
+            return sessionUser;
         }
 
         return null;
     }
 
-    private long parseIncidentId(
-            String value
-    ) {
-
-        if (value == null
-                || value.isBlank()) {
-
+    private long parseIncidentId(String value) {
+        if (value == null || value.isBlank()) {
             throw new ValidationException(
                     "Incident ID is required."
             );
         }
 
         try {
-
             long incidentId =
-                    Long.parseLong(
-                            value.trim()
-                    );
+                    Long.parseLong(value.trim());
 
             if (incidentId <= 0) {
-
                 throw new ValidationException(
                         "Incident ID must be greater than zero."
                 );
@@ -394,34 +292,24 @@ public final class MaintenanceCreateServlet
             return incidentId;
 
         } catch (NumberFormatException exception) {
-
             throw new ValidationException(
                     "Incident ID must be a valid number."
             );
         }
     }
 
-    private MaintenanceResult parseResult(
-            String value
-    ) {
-
-        if (value == null
-                || value.isBlank()) {
-
+    private MaintenanceResult parseResult(String value) {
+        if (value == null || value.isBlank()) {
             throw new ValidationException(
                     "Maintenance result is required."
             );
         }
 
         try {
-
             return MaintenanceResult.valueOf(
-                    value.trim()
-                            .toUpperCase()
+                    value.trim().toUpperCase()
             );
-
         } catch (IllegalArgumentException exception) {
-
             throw new ValidationException(
                     "Invalid maintenance result."
             );
@@ -432,26 +320,17 @@ public final class MaintenanceCreateServlet
             String value,
             String fieldName
     ) {
-
-        if (value == null
-                || value.isBlank()) {
-
+        if (value == null || value.isBlank()) {
             throw new ValidationException(
-                    fieldName
-                            + " must not be empty."
+                    fieldName + " must not be empty."
             );
         }
 
         return value.trim();
     }
 
-    private String normalizeOptionalText(
-            String value
-    ) {
-
-        if (value == null
-                || value.isBlank()) {
-
+    private String normalizeOptionalText(String value) {
+        if (value == null || value.isBlank()) {
             return null;
         }
 

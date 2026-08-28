@@ -18,9 +18,6 @@ import java.time.LocalDateTime;
 public class Main {
 
     public static void main(String[] args) {
-
-        // User model test
-
         User admin = new User(
                 "admin",
                 "TEMPORARY_HASH_ADMIN",
@@ -31,8 +28,6 @@ public class Main {
 
         admin.setId(1L);
         admin.setCreatedAt(LocalDateTime.now());
-
-        // Equipment model test
 
         Equipment equipment = new Equipment(
                 "EQ-001",
@@ -48,8 +43,6 @@ public class Main {
         equipment.setId(1L);
         equipment.setCreatedAt(LocalDateTime.now());
 
-        // Incident model test
-
         Incident incident = new Incident(
                 "Main network switch is not responding",
                 "The main network switch stopped responding.",
@@ -62,9 +55,39 @@ public class Main {
         incident.setId(1L);
         incident.setCreatedAt(LocalDateTime.now());
 
-        // Verification of default values
+        validateDefaults(admin, equipment, incident);
 
-        if (!admin.isActive()) {
+        incident.setStatus(IncidentStatus.IN_PROGRESS);
+        incident.setStartedAt(LocalDateTime.now());
+
+        MaintenanceRecord maintenanceRecord = new MaintenanceRecord(
+                incident.getId(),
+                equipment.getId(),
+                2L,
+                "Replaced the damaged Ethernet cable and tested the connection.",
+                "CAT6 Ethernet cable",
+                MaintenanceResult.SUCCESS
+        );
+
+        maintenanceRecord.setId(1L);
+        maintenanceRecord.setPerformedAt(LocalDateTime.now());
+
+        printModels(
+                admin,
+                equipment,
+                incident,
+                maintenanceRecord
+        );
+
+        testDatabaseConnection();
+    }
+
+    private static void validateDefaults(
+            User user,
+            Equipment equipment,
+            Incident incident
+    ) {
+        if (!user.isActive()) {
             throw new IllegalStateException(
                     "New user must be active by default."
             );
@@ -81,30 +104,16 @@ public class Main {
                     "New incident must have NEW status."
             );
         }
+    }
 
-        // Simulating the start of work on the incident
-
-        incident.setStatus(IncidentStatus.IN_PROGRESS);
-        incident.setStartedAt(LocalDateTime.now());
-
-        // MaintenanceRecord model test
-
-        MaintenanceRecord maintenanceRecord = new MaintenanceRecord(
-                incident.getId(),
-                equipment.getId(),
-                2L,
-                "Replaced the damaged Ethernet cable and tested the connection.",
-                "CAT6 Ethernet cable",
-                MaintenanceResult.SUCCESS
-        );
-
-        maintenanceRecord.setId(1L);
-        maintenanceRecord.setPerformedAt(LocalDateTime.now());
-
-        // Model test output
-
+    private static void printModels(
+            User user,
+            Equipment equipment,
+            Incident incident,
+            MaintenanceRecord maintenanceRecord
+    ) {
         System.out.println("User:");
-        System.out.println(admin);
+        System.out.println(user);
 
         System.out.println("\nEquipment:");
         System.out.println(equipment);
@@ -112,15 +121,15 @@ public class Main {
         System.out.println("\nIncident:");
         System.out.println(incident);
 
-        System.out.println("\nMaintenanceRecord:");
+        System.out.println("\nMaintenance record:");
         System.out.println(maintenanceRecord);
 
         System.out.println(
-                "\nAll Java models and enums work correctly."
+                "\nModel validation completed successfully."
         );
+    }
 
-        // MySQL connection test
-
+    private static void testDatabaseConnection() {
         System.out.println();
         System.out.println("Testing connection to MySQL...");
 
@@ -136,7 +145,6 @@ public class Main {
             );
 
         } catch (SQLException exception) {
-
             System.err.println("Database connection failed.");
             System.err.println(
                     "SQL error code: " + exception.getErrorCode()
@@ -149,22 +157,18 @@ public class Main {
             );
 
         } catch (ExceptionInInitializerError error) {
-
             System.err.println(
                     "Database configuration initialization failed."
             );
 
             Throwable cause = error.getCause();
 
-            if (cause != null) {
-                System.err.println(
-                        "Reason: " + cause.getMessage()
-                );
-            } else {
-                System.err.println(
-                        "Reason: " + error.getMessage()
-                );
-            }
+            System.err.println(
+                    "Reason: "
+                            + (cause != null
+                            ? cause.getMessage()
+                            : error.getMessage())
+            );
         }
     }
 }
