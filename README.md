@@ -585,7 +585,7 @@ Ele primesc datele pregătite de Servlet-uri și construiesc paginile HTML afiș
 Structura generală este:
 
 ```text
-METRO-IT-management-system/
+METRO_IT-management-system/
 │
 ├── application/
 │   │
@@ -1471,7 +1471,7 @@ Driver MySQL:          MySQL Connector/J
 Hash parole:           BCrypt
 Arhitectură:           Model + DAO + Service + Servlet + JSP
 Pachet de distribuție: WAR
-Versionare:             Git / GitHub
+Versionare:            Git / GitHub
 ```
 
 ---
