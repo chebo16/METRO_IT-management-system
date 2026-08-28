@@ -5,7 +5,6 @@
 
 <%!
     private static String escapeHtml(Object value) {
-
         if (value == null) {
             return "";
         }
@@ -20,23 +19,16 @@
 %>
 
 <%
-    String contextPath =
-            request.getContextPath();
+    String contextPath = request.getContextPath();
 
     String errorMessage =
-            escapeHtml(
-                    request.getAttribute("errorMessage")
-            );
+            escapeHtml(request.getAttribute("errorMessage"));
 
     String username =
-            escapeHtml(
-                    request.getAttribute("username")
-            );
+            escapeHtml(request.getAttribute("username"));
 
     boolean logoutSuccessful =
-            "true".equals(
-                    request.getParameter("logout")
-            );
+            "true".equals(request.getParameter("logout"));
 %>
 
 <!DOCTYPE html>
@@ -62,7 +54,6 @@
              aria-labelledby="login-title">
 
         <header class="login-header">
-
             <div class="login-brand">
                 METRO
             </div>
@@ -71,20 +62,17 @@
                 IT Management System
             </h1>
 
-            <p>
-                Sign in to manage IT equipment,
-                incidents and maintenance activities.
+            <p class="login-subtitle">
+                Sign in to manage IT equipment, incidents and maintenance activities.
             </p>
-
         </header>
 
         <% if (logoutSuccessful) { %>
 
         <div class="alert alert-success"
-             role="status">
-
+             role="status"
+             aria-live="polite">
             You have been signed out successfully.
-
         </div>
 
         <% } %>
@@ -92,10 +80,9 @@
         <% if (!errorMessage.isEmpty()) { %>
 
         <div class="alert alert-error"
-             role="alert">
-
+             role="alert"
+             aria-live="assertive">
             <%= errorMessage %>
-
         </div>
 
         <% } %>
@@ -106,7 +93,6 @@
               autocomplete="on">
 
             <div class="form-group">
-
                 <label for="username">
                     Username
                 </label>
@@ -117,13 +103,12 @@
                        value="<%= username %>"
                        maxlength="50"
                        autocomplete="username"
+                       placeholder="Enter your username"
                        required
                        autofocus>
-
             </div>
 
             <div class="form-group">
-
                 <label for="password">
                     Password
                 </label>
@@ -132,26 +117,23 @@
                        id="password"
                        name="password"
                        autocomplete="current-password"
+                       placeholder="Enter your password"
                        required>
-
             </div>
 
-            <button type="submit"
-                    class="button button-primary">
-
-                Sign in
-
-            </button>
+            <div class="login-actions">
+                <button type="submit"
+                        class="button button-primary login-submit">
+                    Sign in
+                </button>
+            </div>
 
         </form>
 
         <footer class="login-footer">
-
             <p>
-                Access is restricted to authorized
-                METRO personnel.
+                Access is restricted to authorized METRO personnel.
             </p>
-
         </footer>
 
     </section>

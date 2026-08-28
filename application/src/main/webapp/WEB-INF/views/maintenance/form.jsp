@@ -10,10 +10,7 @@
 <%@ page import="com.chebo16.metroit.web.session.SessionUser" %>
 
 <%!
-    private static String escapeHtml(
-            Object value
-    ) {
-
+    private static String escapeHtml(Object value) {
         if (value == null) {
             return "";
         }
@@ -26,16 +23,12 @@
                 .replace("'", "&#39;");
     }
 
-    private static String displayValue(
-            Object value
-    ) {
-
+    private static String displayValue(Object value) {
         if (value == null) {
             return "Not available";
         }
 
-        String text =
-                value.toString().trim();
+        String text = value.toString().trim();
 
         if (text.isEmpty()) {
             return "Not available";
@@ -44,93 +37,64 @@
         return escapeHtml(text);
     }
 
-    private static String formatEnum(
-            Object value
-    ) {
-
+    private static String formatEnum(Object value) {
         if (value == null) {
             return "";
         }
 
         return escapeHtml(
-                value.toString()
-                        .replace('_', ' ')
+                value.toString().replace('_', ' ')
         );
     }
 %>
 
 <%
-    String contextPath =
-            request.getContextPath();
+    String contextPath = request.getContextPath();
 
     SessionUser sessionUser = null;
 
-    Object authenticatedUserAttribute =
-            session.getAttribute(
-                    SessionConstants.AUTHENTICATED_USER
-            );
+    Object authenticatedUserAttribute = session.getAttribute(
+            SessionConstants.AUTHENTICATED_USER
+    );
 
-    if (authenticatedUserAttribute
-            instanceof SessionUser) {
-
-        sessionUser =
-                (SessionUser)
-                        authenticatedUserAttribute;
+    if (authenticatedUserAttribute instanceof SessionUser) {
+        sessionUser = (SessionUser) authenticatedUserAttribute;
     }
 
     Incident incident = null;
 
     Object incidentAttribute =
-            request.getAttribute(
-                    "incident"
-            );
+            request.getAttribute("incident");
 
-    if (incidentAttribute
-            instanceof Incident) {
-
-        incident =
-                (Incident)
-                        incidentAttribute;
+    if (incidentAttribute instanceof Incident) {
+        incident = (Incident) incidentAttribute;
     }
 
     Equipment equipment = null;
 
     Object equipmentAttribute =
-            request.getAttribute(
-                    "equipment"
-            );
+            request.getAttribute("equipment");
 
-    if (equipmentAttribute
-            instanceof Equipment) {
-
-        equipment =
-                (Equipment)
-                        equipmentAttribute;
+    if (equipmentAttribute instanceof Equipment) {
+        equipment = (Equipment) equipmentAttribute;
     }
 
     MaintenanceResult[] results =
             MaintenanceResult.values();
 
     Object resultsAttribute =
-            request.getAttribute(
-                    "results"
-            );
+            request.getAttribute("results");
 
-    if (resultsAttribute
-            instanceof MaintenanceResult[]) {
-
+    if (resultsAttribute instanceof MaintenanceResult[]) {
         results =
-                (MaintenanceResult[])
-                        resultsAttribute;
+                (MaintenanceResult[]) resultsAttribute;
     }
 %>
 
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta name="viewport"
@@ -142,45 +106,31 @@
 
     <link rel="stylesheet"
           href="<%= contextPath %>/css/style.css">
-
 </head>
 
 <body>
 
 <header>
-
     <h1>
-
         <a href="<%= contextPath %>/">
             METRO IT Management
         </a>
-
     </h1>
 
     <% if (sessionUser != null) { %>
 
     <p>
-
         Logged in as:
-
         <strong>
-            <%= escapeHtml(
-                    sessionUser.getFullName()
-            ) %>
+            <%= escapeHtml(sessionUser.getFullName()) %>
         </strong>
-
         -
-
-        <%= escapeHtml(
-                sessionUser.getRole()
-        ) %>
-
+        <%= escapeHtml(sessionUser.getRole()) %>
     </p>
 
     <% } %>
 
     <nav>
-
         <a href="<%= contextPath %>/">
             Dashboard
         </a>
@@ -207,15 +157,10 @@
 
             <button type="submit"
                     class="button button-secondary">
-
                 Sign out
-
             </button>
-
         </form>
-
     </nav>
-
 </header>
 
 <hr>
@@ -227,9 +172,7 @@
     <% if (incident == null) { %>
 
     <div class="page-header">
-
         <div>
-
             <h2>
                 Add maintenance record
             </h2>
@@ -238,41 +181,29 @@
                 Maintenance information cannot be created
                 without a valid incident.
             </p>
-
         </div>
-
     </div>
 
     <div class="warning-message">
-
         Incident information is not available.
-
     </div>
 
     <div class="form-actions">
-
         <a href="<%= contextPath %>/incidents/my"
            class="button button-secondary">
-
             Back to my incidents
-
         </a>
 
         <a href="<%= contextPath %>/maintenance"
            class="button button-secondary">
-
             Maintenance history
-
         </a>
-
     </div>
 
     <% } else { %>
 
     <div class="page-header">
-
         <div>
-
             <h2>
                 Add maintenance record
             </h2>
@@ -283,25 +214,19 @@
                 performed for incident
                 #<%= incident.getId() %>.
             </p>
-
         </div>
 
         <a href="<%= contextPath %>/incidents/details?id=<%= incident.getId() %>"
            class="button button-secondary">
-
             Back to incident
-
         </a>
-
     </div>
 
     <section class="content-card"
              aria-labelledby="maintenance-incident-title">
 
         <div class="content-card-header">
-
             <div>
-
                 <h2 id="maintenance-incident-title">
                     Incident information
                 </h2>
@@ -310,25 +235,18 @@
                     Incident associated with this
                     maintenance record.
                 </span>
-
             </div>
-
         </div>
 
         <dl>
-
             <dt>
                 Incident
             </dt>
 
             <dd>
-
                 #<%= incident.getId() %>
                 -
-                <%= escapeHtml(
-                        incident.getTitle()
-                ) %>
-
+                <%= escapeHtml(incident.getTitle()) %>
             </dd>
 
             <dt>
@@ -336,11 +254,7 @@
             </dt>
 
             <dd>
-
-                <%= formatEnum(
-                        incident.getStatus()
-                ) %>
-
+                <%= formatEnum(incident.getStatus()) %>
             </dd>
 
             <dt>
@@ -348,11 +262,7 @@
             </dt>
 
             <dd>
-
-                <%= formatEnum(
-                        incident.getPriority()
-                ) %>
-
+                <%= formatEnum(incident.getPriority()) %>
             </dd>
 
             <dt>
@@ -360,13 +270,10 @@
             </dt>
 
             <dd>
-
                 <%= displayValue(
                         incident.getAssignedTechnicianId()
                 ) %>
-
             </dd>
-
         </dl>
 
     </section>
@@ -375,9 +282,7 @@
              aria-labelledby="maintenance-equipment-title">
 
         <div class="content-card-header">
-
             <div>
-
                 <h2 id="maintenance-equipment-title">
                     Equipment information
                 </h2>
@@ -385,25 +290,20 @@
                 <span>
                     Equipment affected by the incident.
                 </span>
-
             </div>
-
         </div>
 
         <% if (equipment != null) { %>
 
         <dl>
-
             <dt>
                 Inventory number
             </dt>
 
             <dd>
-
                 <%= displayValue(
                         equipment.getInventoryNumber()
                 ) %>
-
             </dd>
 
             <dt>
@@ -411,11 +311,9 @@
             </dt>
 
             <dd>
-
                 <%= displayValue(
                         equipment.getName()
                 ) %>
-
             </dd>
 
             <dt>
@@ -423,11 +321,9 @@
             </dt>
 
             <dd>
-
                 <%= displayValue(
                         equipment.getType()
                 ) %>
-
             </dd>
 
             <dt>
@@ -435,11 +331,9 @@
             </dt>
 
             <dd>
-
                 <%= displayValue(
                         equipment.getManufacturer()
                 ) %>
-
             </dd>
 
             <dt>
@@ -447,21 +341,16 @@
             </dt>
 
             <dd>
-
                 <%= displayValue(
                         equipment.getModel()
                 ) %>
-
             </dd>
-
         </dl>
 
         <% } else { %>
 
         <div class="warning-message">
-
             Equipment information is not available.
-
         </div>
 
         <% } %>
@@ -472,9 +361,7 @@
              aria-labelledby="maintenance-work-title">
 
         <div class="content-card-header">
-
             <div>
-
                 <h2 id="maintenance-work-title">
                     Maintenance work
                 </h2>
@@ -483,9 +370,7 @@
                     Describe the performed technical work
                     and its final result.
                 </span>
-
             </div>
-
         </div>
 
         <form method="post"
@@ -498,7 +383,6 @@
             <div class="form-grid">
 
                 <div class="form-group form-group-full">
-
                     <div>
                         <label for="workDescription">
                             Work description
@@ -517,11 +401,9 @@
                         configuration or other technical
                         work performed.
                     </small>
-
                 </div>
 
                 <div class="form-group form-group-full">
-
                     <div>
                         <label for="replacedComponents">
                             Replaced components
@@ -538,11 +420,9 @@
                         Leave this field empty if no
                         components were replaced.
                     </small>
-
                 </div>
 
                 <div class="form-group">
-
                     <label for="result">
                         Maintenance result
                     </label>
@@ -555,15 +435,10 @@
                             Select result
                         </option>
 
-                        <% for (MaintenanceResult result
-                                : results) { %>
+                        <% for (MaintenanceResult result : results) { %>
 
                         <option value="<%= result.name() %>">
-
-                            <%= formatEnum(
-                                    result
-                            ) %>
-
+                            <%= formatEnum(result) %>
                         </option>
 
                         <% } %>
@@ -574,27 +449,20 @@
                         Select the final result of the
                         maintenance activity.
                     </small>
-
                 </div>
 
             </div>
 
             <div class="form-actions">
-
                 <button type="submit"
                         class="button button-primary">
-
                     Save maintenance record
-
                 </button>
 
                 <a href="<%= contextPath %>/incidents/details?id=<%= incident.getId() %>"
                    class="button button-secondary">
-
                     Cancel
-
                 </a>
-
             </div>
 
         </form>
@@ -602,21 +470,15 @@
     </section>
 
     <div class="form-actions">
-
         <a href="<%= contextPath %>/incidents/details?id=<%= incident.getId() %>"
            class="button button-secondary">
-
             Back to incident details
-
         </a>
 
         <a href="<%= contextPath %>/maintenance"
            class="button button-secondary">
-
             View maintenance history
-
         </a>
-
     </div>
 
     <% } %>

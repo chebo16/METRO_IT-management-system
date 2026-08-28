@@ -7,34 +7,16 @@
 <%@ page import="com.chebo16.metroit.web.session.SessionUser" %>
 
 <%
-    String contextPath =
-            request.getContextPath();
+    String contextPath = request.getContextPath();
 
-    Object authenticatedUserAttribute =
-            session.getAttribute(
-                    SessionConstants.AUTHENTICATED_USER
-            );
+    Object authenticatedUserAttribute = session.getAttribute(
+            SessionConstants.AUTHENTICATED_USER
+    );
 
-    SessionUser sessionUser = null;
-
-    if (authenticatedUserAttribute
-            instanceof SessionUser) {
-
-        sessionUser =
-                (SessionUser)
-                        authenticatedUserAttribute;
-    }
-
-    if (sessionUser == null) {
-
-        response.sendRedirect(
-                contextPath + "/login"
-        );
-
+    if (!(authenticatedUserAttribute instanceof SessionUser)) {
+        response.sendRedirect(contextPath + "/login");
         return;
     }
 
-    response.sendRedirect(
-            contextPath + "/dashboard"
-    );
+    response.sendRedirect(contextPath + "/dashboard");
 %>

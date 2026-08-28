@@ -11,10 +11,7 @@
 <%@ page import="com.chebo16.metroit.web.session.SessionUser" %>
 
 <%!
-    private static String escapeHtml(
-            Object value
-    ) {
-
+    private static String escapeHtml(Object value) {
         if (value == null) {
             return "";
         }
@@ -27,157 +24,98 @@
                 .replace("'", "&#39;");
     }
 
-    private static String formatPriority(
-            IncidentPriority priority
-    ) {
-
+    private static String formatPriority(IncidentPriority priority) {
         if (priority == null) {
             return "";
         }
 
-        return priority.name()
-                .replace('_', ' ');
+        return priority.name().replace('_', ' ');
     }
 
-    private static String formatEquipmentStatus(
-            Object status
-    ) {
-
+    private static String formatEquipmentStatus(Object status) {
         if (status == null) {
             return "";
         }
 
-        return status.toString()
-                .replace('_', ' ');
+        return status.toString().replace('_', ' ');
     }
 %>
 
 <%
-    String contextPath =
-            request.getContextPath();
+    String contextPath = request.getContextPath();
 
-    Object authenticatedUserAttribute =
-            session.getAttribute(
-                    SessionConstants.AUTHENTICATED_USER
-            );
+    Object authenticatedUserAttribute = session.getAttribute(
+            SessionConstants.AUTHENTICATED_USER
+    );
 
     SessionUser sessionUser = null;
 
-    if (authenticatedUserAttribute
-            instanceof SessionUser) {
-
-        sessionUser =
-                (SessionUser)
-                        authenticatedUserAttribute;
+    if (authenticatedUserAttribute instanceof SessionUser) {
+        sessionUser = (SessionUser) authenticatedUserAttribute;
     }
 
     String pageTitle =
-            escapeHtml(
-                    request.getAttribute(
-                            "pageTitle"
-                    )
-            );
+            escapeHtml(request.getAttribute("pageTitle"));
 
     if (pageTitle.isEmpty()) {
         pageTitle = "Create incident";
     }
 
     String formAction =
-            escapeHtml(
-                    request.getAttribute(
-                            "formAction"
-                    )
-            );
+            escapeHtml(request.getAttribute("formAction"));
 
     if (formAction.isEmpty()) {
-
         formAction =
-                contextPath
-                        + "/admin/incidents/create";
+                contextPath + "/admin/incidents/create";
     }
 
     String submitLabel =
-            escapeHtml(
-                    request.getAttribute(
-                            "submitLabel"
-                    )
-            );
+            escapeHtml(request.getAttribute("submitLabel"));
 
     if (submitLabel.isEmpty()) {
         submitLabel = "Create incident";
     }
 
     String title =
-            escapeHtml(
-                    request.getAttribute(
-                            "title"
-                    )
-            );
+            escapeHtml(request.getAttribute("title"));
 
     String description =
-            escapeHtml(
-                    request.getAttribute(
-                            "description"
-                    )
-            );
+            escapeHtml(request.getAttribute("description"));
 
     String selectedPriority =
-            escapeHtml(
-                    request.getAttribute(
-                            "selectedPriority"
-                    )
-            );
+            escapeHtml(request.getAttribute("selectedPriority"));
 
     if (selectedPriority.isEmpty()) {
-
         selectedPriority =
                 IncidentPriority.MEDIUM.name();
     }
 
     String selectedEquipmentId =
-            escapeHtml(
-                    request.getAttribute(
-                            "selectedEquipmentId"
-                    )
-            );
+            escapeHtml(request.getAttribute("selectedEquipmentId"));
 
     String errorMessage =
-            escapeHtml(
-                    request.getAttribute(
-                            "errorMessage"
-                    )
-            );
+            escapeHtml(request.getAttribute("errorMessage"));
 
     List<Equipment> equipmentList =
             Collections.emptyList();
 
     Object equipmentAttribute =
-            request.getAttribute(
-                    "equipment"
-            );
+            request.getAttribute("equipment");
 
-    if (equipmentAttribute
-            instanceof List) {
-
+    if (equipmentAttribute instanceof List) {
         equipmentList =
-                (List<Equipment>)
-                        equipmentAttribute;
+                (List<Equipment>) equipmentAttribute;
     }
 
     IncidentPriority[] availablePriorities =
             IncidentPriority.values();
 
     Object prioritiesAttribute =
-            request.getAttribute(
-                    "availablePriorities"
-            );
+            request.getAttribute("availablePriorities");
 
-    if (prioritiesAttribute
-            instanceof IncidentPriority[]) {
-
+    if (prioritiesAttribute instanceof IncidentPriority[]) {
         availablePriorities =
-                (IncidentPriority[])
-                        prioritiesAttribute;
+                (IncidentPriority[]) prioritiesAttribute;
     }
 %>
 
@@ -185,57 +123,38 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>
-        <%= pageTitle %> | METRO IT Management
-    </title>
+    <title><%= pageTitle %> | METRO IT Management</title>
 
     <link rel="stylesheet"
           href="<%= contextPath %>/css/style.css">
-
 </head>
 
 <body>
 
 <header>
-
     <h1>
-
         <a href="<%= contextPath %>/">
             METRO IT Management
         </a>
-
     </h1>
 
     <% if (sessionUser != null) { %>
 
     <p>
-
         Logged in as:
-
-        <strong>
-            <%= escapeHtml(
-                    sessionUser.getFullName()
-            ) %>
-        </strong>
-
+        <strong><%= escapeHtml(sessionUser.getFullName()) %></strong>
         -
-
-        <%= escapeHtml(
-                sessionUser.getRole()
-        ) %>
-
+        <%= escapeHtml(sessionUser.getRole()) %>
     </p>
 
     <% } %>
 
     <nav>
-
         <a href="<%= contextPath %>/">
             Dashboard
         </a>
@@ -262,15 +181,10 @@
 
             <button type="submit"
                     class="button button-secondary">
-
                 Sign out
-
             </button>
-
         </form>
-
     </nav>
-
 </header>
 
 <hr>
@@ -280,36 +194,26 @@
     <%@ include file="/WEB-INF/views/common/navigation.jspf" %>
 
     <div class="page-header">
-
         <div>
-
-            <h2>
-                <%= pageTitle %>
-            </h2>
+            <h2><%= pageTitle %></h2>
 
             <p>
                 Register a new IT incident and associate
                 it with the affected equipment.
             </p>
-
         </div>
 
         <a href="<%= contextPath %>/incidents"
            class="button button-secondary">
-
             Back to incidents
-
         </a>
-
     </div>
 
     <% if (!errorMessage.isEmpty()) { %>
 
     <div class="error-message"
          role="alert">
-
         <%= errorMessage %>
-
     </div>
 
     <% } %>
@@ -318,9 +222,7 @@
              aria-labelledby="incident-form-title">
 
         <div class="content-card-header">
-
             <div>
-
                 <h2 id="incident-form-title">
                     Incident details
                 </h2>
@@ -329,38 +231,28 @@
                     New incidents are automatically
                     created with status NEW.
                 </span>
-
             </div>
-
         </div>
 
         <% if (equipmentList.isEmpty()) { %>
 
         <div class="error-message"
              role="alert">
-
             No equipment is registered in the system.
             Equipment must exist before an incident
             can be created.
-
         </div>
 
         <div class="form-actions">
-
             <a href="<%= contextPath %>/admin/equipment/create"
                class="button button-primary">
-
                 Add equipment
-
             </a>
 
             <a href="<%= contextPath %>/incidents"
                class="button button-secondary">
-
                 Back to incidents
-
             </a>
-
         </div>
 
         <% } else { %>
@@ -373,7 +265,6 @@
             <div class="form-grid">
 
                 <div class="form-group form-group-full">
-
                     <label for="title">
                         Incident title
                     </label>
@@ -390,11 +281,9 @@
                         Enter a clear and concise title
                         for the incident.
                     </small>
-
                 </div>
 
                 <div class="form-group">
-
                     <label for="priority">
                         Priority
                     </label>
@@ -403,23 +292,13 @@
                             name="priority"
                             required>
 
-                        <% for (IncidentPriority priority
-                                : availablePriorities) { %>
+                        <% for (IncidentPriority priority : availablePriorities) { %>
 
                         <option value="<%= priority.name() %>"
-                                <%= priority.name()
-                                        .equals(
-                                                selectedPriority
-                                        )
+                                <%= priority.name().equals(selectedPriority)
                                         ? "selected"
                                         : "" %>>
-
-                            <%= escapeHtml(
-                                    formatPriority(
-                                            priority
-                                    )
-                            ) %>
-
+                            <%= escapeHtml(formatPriority(priority)) %>
                         </option>
 
                         <% } %>
@@ -430,11 +309,9 @@
                         Select the operational priority
                         of the incident.
                     </small>
-
                 </div>
 
                 <div class="form-group">
-
                     <label for="equipmentId">
                         Affected equipment
                     </label>
@@ -447,43 +324,25 @@
                             Select equipment
                         </option>
 
-                        <% for (Equipment equipment
-                                : equipmentList) {
-
+                        <% for (Equipment equipment : equipmentList) {
                             String equipmentId =
-                                    String.valueOf(
-                                            equipment.getId()
-                                    );
+                                    String.valueOf(equipment.getId());
                         %>
 
                         <option value="<%= equipmentId %>"
-                                <%= equipmentId.equals(
-                                        selectedEquipmentId
-                                )
+                                <%= equipmentId.equals(selectedEquipmentId)
                                         ? "selected"
                                         : "" %>>
-
-                            <%= escapeHtml(
-                                    equipment
-                                            .getInventoryNumber()
-                            ) %>
-
+                            <%= escapeHtml(equipment.getInventoryNumber()) %>
                             —
-
-                            <%= escapeHtml(
-                                    equipment.getName()
-                            ) %>
-
+                            <%= escapeHtml(equipment.getName()) %>
                             (
-
                             <%= escapeHtml(
                                     formatEquipmentStatus(
                                             equipment.getStatus()
                                     )
                             ) %>
-
                             )
-
                         </option>
 
                         <% } %>
@@ -494,11 +353,9 @@
                         Select the equipment affected
                         by the incident.
                     </small>
-
                 </div>
 
                 <div class="form-group form-group-full">
-
                     <div>
                         <label for="description">
                             Description
@@ -516,33 +373,26 @@
                         the technician to diagnose the
                         problem.
                     </small>
-
                 </div>
 
             </div>
 
             <section class="content-card incident-information">
-
                 <div class="content-card-header">
-
                     <h3>
                         Initial incident state
                     </h3>
-
                 </div>
 
                 <dl>
-
                     <dt>
                         Status
                     </dt>
 
                     <dd>
-
                         <span class="status-badge status-new">
                             NEW
                         </span>
-
                     </dd>
 
                     <dt>
@@ -558,41 +408,29 @@
                     </dt>
 
                     <dd>
-
                         <% if (sessionUser != null) { %>
 
-                        <%= escapeHtml(
-                                sessionUser.getFullName()
-                        ) %>
+                        <%= escapeHtml(sessionUser.getFullName()) %>
 
                         <% } else { %>
 
                         Current administrator
 
                         <% } %>
-
                     </dd>
-
                 </dl>
-
             </section>
 
             <div class="form-actions">
-
                 <button type="submit"
                         class="button button-primary">
-
                     <%= submitLabel %>
-
                 </button>
 
                 <a href="<%= contextPath %>/incidents"
                    class="button button-secondary">
-
                     Cancel
-
                 </a>
-
             </div>
 
         </form>

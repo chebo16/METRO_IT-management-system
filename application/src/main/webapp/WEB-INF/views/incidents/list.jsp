@@ -12,10 +12,7 @@
 <%@ page import="com.chebo16.metroit.web.session.SessionUser" %>
 
 <%!
-    private static String escapeHtml(
-            Object value
-    ) {
-
+    private static String escapeHtml(Object value) {
         if (value == null) {
             return "";
         }
@@ -28,49 +25,32 @@
                 .replace("'", "&#39;");
     }
 
-    private static long getLongAttribute(
-            Object attribute
-    ) {
-
+    private static long getLongAttribute(Object attribute) {
         if (attribute instanceof Number) {
-
-            Number number =
-                    (Number) attribute;
-
+            Number number = (Number) attribute;
             return number.longValue();
         }
 
         return 0L;
     }
 
-    private static String formatStatus(
-            IncidentStatus status
-    ) {
-
+    private static String formatStatus(IncidentStatus status) {
         if (status == null) {
             return "";
         }
 
-        return status.name()
-                .replace('_', ' ');
+        return status.name().replace('_', ' ');
     }
 
-    private static String formatPriority(
-            IncidentPriority priority
-    ) {
-
+    private static String formatPriority(IncidentPriority priority) {
         if (priority == null) {
             return "";
         }
 
-        return priority.name()
-                .replace('_', ' ');
+        return priority.name().replace('_', ' ');
     }
 
-    private static String getStatusCssClass(
-            IncidentStatus status
-    ) {
-
+    private static String getStatusCssClass(IncidentStatus status) {
         if (status == null) {
             return "status-inactive";
         }
@@ -97,7 +77,6 @@
     private static String getPriorityCssClass(
             IncidentPriority priority
     ) {
-
         if (priority == null) {
             return "priority-medium";
         }
@@ -125,193 +104,110 @@
             String value,
             int maximumLength
     ) {
-
         if (value == null) {
             return "";
         }
 
-        String normalizedValue =
-                value.trim();
+        String normalizedValue = value.trim();
 
-        if (normalizedValue.length()
-                <= maximumLength) {
-
+        if (normalizedValue.length() <= maximumLength) {
             return normalizedValue;
         }
 
-        return normalizedValue.substring(
-                0,
-                maximumLength
-        ) + "...";
+        return normalizedValue.substring(0, maximumLength) + "...";
     }
 %>
 
 <%
-    String contextPath =
-            request.getContextPath();
+    String contextPath = request.getContextPath();
 
-    Object authenticatedUserAttribute =
-            session.getAttribute(
-                    SessionConstants.AUTHENTICATED_USER
-            );
+    Object authenticatedUserAttribute = session.getAttribute(
+            SessionConstants.AUTHENTICATED_USER
+    );
 
     SessionUser sessionUser = null;
 
-    if (authenticatedUserAttribute
-            instanceof SessionUser) {
-
-        sessionUser =
-                (SessionUser)
-                        authenticatedUserAttribute;
+    if (authenticatedUserAttribute instanceof SessionUser) {
+        sessionUser = (SessionUser) authenticatedUserAttribute;
     }
 
     boolean administrator =
-            sessionUser != null
-                    && sessionUser.isAdmin();
+            sessionUser != null && sessionUser.isAdmin();
 
     List<Incident> incidents =
             Collections.emptyList();
 
     Object incidentsAttribute =
-            request.getAttribute(
-                    "incidents"
-            );
+            request.getAttribute("incidents");
 
-    if (incidentsAttribute
-            instanceof List) {
-
-        incidents =
-                (List<Incident>)
-                        incidentsAttribute;
+    if (incidentsAttribute instanceof List) {
+        incidents = (List<Incident>) incidentsAttribute;
     }
 
     long totalIncidents =
-            getLongAttribute(
-                    request.getAttribute(
-                            "totalIncidents"
-                    )
-            );
+            getLongAttribute(request.getAttribute("totalIncidents"));
 
     long displayedIncidents =
-            getLongAttribute(
-                    request.getAttribute(
-                            "displayedIncidents"
-                    )
-            );
+            getLongAttribute(request.getAttribute("displayedIncidents"));
 
     long newIncidents =
-            getLongAttribute(
-                    request.getAttribute(
-                            "newIncidents"
-                    )
-            );
+            getLongAttribute(request.getAttribute("newIncidents"));
 
     long inProgressIncidents =
-            getLongAttribute(
-                    request.getAttribute(
-                            "inProgressIncidents"
-                    )
-            );
+            getLongAttribute(request.getAttribute("inProgressIncidents"));
 
     long resolvedIncidents =
-            getLongAttribute(
-                    request.getAttribute(
-                            "resolvedIncidents"
-                    )
-            );
+            getLongAttribute(request.getAttribute("resolvedIncidents"));
 
     long closedIncidents =
-            getLongAttribute(
-                    request.getAttribute(
-                            "closedIncidents"
-                    )
-            );
+            getLongAttribute(request.getAttribute("closedIncidents"));
 
     String searchQuery =
-            escapeHtml(
-                    request.getAttribute(
-                            "searchQuery"
-                    )
-            );
+            escapeHtml(request.getAttribute("searchQuery"));
 
     String selectedStatus =
-            escapeHtml(
-                    request.getAttribute(
-                            "selectedStatus"
-                    )
-            );
+            escapeHtml(request.getAttribute("selectedStatus"));
 
     String selectedPriority =
-            escapeHtml(
-                    request.getAttribute(
-                            "selectedPriority"
-                    )
-            );
+            escapeHtml(request.getAttribute("selectedPriority"));
 
     IncidentStatus[] availableStatuses =
             IncidentStatus.values();
 
     Object statusesAttribute =
-            request.getAttribute(
-                    "availableStatuses"
-            );
+            request.getAttribute("availableStatuses");
 
-    if (statusesAttribute
-            instanceof IncidentStatus[]) {
-
+    if (statusesAttribute instanceof IncidentStatus[]) {
         availableStatuses =
-                (IncidentStatus[])
-                        statusesAttribute;
+                (IncidentStatus[]) statusesAttribute;
     }
 
     IncidentPriority[] availablePriorities =
             IncidentPriority.values();
 
     Object prioritiesAttribute =
-            request.getAttribute(
-                    "availablePriorities"
-            );
+            request.getAttribute("availablePriorities");
 
-    if (prioritiesAttribute
-            instanceof IncidentPriority[]) {
-
+    if (prioritiesAttribute instanceof IncidentPriority[]) {
         availablePriorities =
-                (IncidentPriority[])
-                        prioritiesAttribute;
+                (IncidentPriority[]) prioritiesAttribute;
     }
 
     String successParameter =
-            request.getParameter(
-                    "success"
-            );
+            request.getParameter("success");
 
     String successMessage = "";
 
-    if ("created".equals(
-            successParameter
-    )) {
-
+    if ("created".equals(successParameter)) {
         successMessage =
                 "Incident was created successfully.";
-
-    } else if ("updated".equals(
-            successParameter
-    )) {
-
+    } else if ("updated".equals(successParameter)) {
         successMessage =
                 "Incident was updated successfully.";
-
-    } else if ("assigned".equals(
-            successParameter
-    )) {
-
+    } else if ("assigned".equals(successParameter)) {
         successMessage =
                 "Incident was assigned successfully.";
-
-    } else if ("status-updated".equals(
-            successParameter
-    )) {
-
+    } else if ("status-updated".equals(successParameter)) {
         successMessage =
                 "Incident status was updated successfully.";
     }
@@ -321,57 +217,38 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>
-        Incidents | METRO IT Management
-    </title>
+    <title>Incidents | METRO IT Management</title>
 
     <link rel="stylesheet"
           href="<%= contextPath %>/css/style.css">
-
 </head>
 
 <body>
 
 <header>
-
     <h1>
-
         <a href="<%= contextPath %>/">
             METRO IT Management
         </a>
-
     </h1>
 
     <% if (sessionUser != null) { %>
 
     <p>
-
         Logged in as:
-
-        <strong>
-            <%= escapeHtml(
-                    sessionUser.getFullName()
-            ) %>
-        </strong>
-
+        <strong><%= escapeHtml(sessionUser.getFullName()) %></strong>
         -
-
-        <%= escapeHtml(
-                sessionUser.getRole()
-        ) %>
-
+        <%= escapeHtml(sessionUser.getRole()) %>
     </p>
 
     <% } %>
 
     <nav>
-
         <a href="<%= contextPath %>/">
             Dashboard
         </a>
@@ -410,15 +287,10 @@
 
             <button type="submit"
                     class="button button-secondary">
-
                 Sign out
-
             </button>
-
         </form>
-
     </nav>
-
 </header>
 
 <hr>
@@ -428,9 +300,7 @@
     <%@ include file="/WEB-INF/views/common/navigation.jspf" %>
 
     <div class="page-header">
-
         <div>
-
             <% if (administrator) { %>
 
             <h2>
@@ -449,31 +319,23 @@
                 View and track IT incidents registered
                 in the system.
             </p>
-
         </div>
 
         <% if (administrator) { %>
 
         <a href="<%= contextPath %>/admin/incidents/create"
            class="button button-primary">
-
             Create incident
-
         </a>
 
         <% } %>
-
     </div>
 
     <% if (!successMessage.isEmpty()) { %>
 
     <div class="success-message"
          role="status">
-
-        <%= escapeHtml(
-                successMessage
-        ) %>
-
+        <%= escapeHtml(successMessage) %>
     </div>
 
     <% } %>
@@ -482,7 +344,6 @@
              aria-label="Incident statistics">
 
         <article class="statistics-card">
-
             <span class="statistics-label">
                 Total incidents
             </span>
@@ -490,11 +351,9 @@
             <strong class="statistics-value">
                 <%= totalIncidents %>
             </strong>
-
         </article>
 
         <article class="statistics-card">
-
             <span class="statistics-label">
                 New
             </span>
@@ -502,11 +361,9 @@
             <strong class="statistics-value">
                 <%= newIncidents %>
             </strong>
-
         </article>
 
         <article class="statistics-card">
-
             <span class="statistics-label">
                 In progress
             </span>
@@ -514,11 +371,9 @@
             <strong class="statistics-value">
                 <%= inProgressIncidents %>
             </strong>
-
         </article>
 
         <article class="statistics-card">
-
             <span class="statistics-label">
                 Resolved
             </span>
@@ -526,11 +381,9 @@
             <strong class="statistics-value">
                 <%= resolvedIncidents %>
             </strong>
-
         </article>
 
         <article class="statistics-card">
-
             <span class="statistics-label">
                 Closed
             </span>
@@ -538,17 +391,13 @@
             <strong class="statistics-value">
                 <%= closedIncidents %>
             </strong>
-
         </article>
 
     </section>
 
     <section class="content-card">
-
         <div class="content-card-header">
-
             <div>
-
                 <h2>
                     Search and filters
                 </h2>
@@ -558,9 +407,7 @@
                     description and filter by status
                     and priority.
                 </span>
-
             </div>
-
         </div>
 
         <form method="get"
@@ -570,7 +417,6 @@
             <div class="filter-grid">
 
                 <div class="form-group">
-
                     <label for="q">
                         Search
                     </label>
@@ -581,11 +427,9 @@
                            value="<%= searchQuery %>"
                            placeholder="Incident title or description..."
                            maxlength="150">
-
                 </div>
 
                 <div class="form-group">
-
                     <label for="status">
                         Status
                     </label>
@@ -597,33 +441,21 @@
                             All statuses
                         </option>
 
-                        <% for (IncidentStatus status
-                                : availableStatuses) { %>
+                        <% for (IncidentStatus status : availableStatuses) { %>
 
                         <option value="<%= status.name() %>"
-                                <%= status.name()
-                                        .equals(
-                                                selectedStatus
-                                        )
+                                <%= status.name().equals(selectedStatus)
                                         ? "selected"
                                         : "" %>>
-
-                            <%= escapeHtml(
-                                    formatStatus(
-                                            status
-                                    )
-                            ) %>
-
+                            <%= escapeHtml(formatStatus(status)) %>
                         </option>
 
                         <% } %>
 
                     </select>
-
                 </div>
 
                 <div class="form-group">
-
                     <label for="priority">
                         Priority
                     </label>
@@ -635,80 +467,56 @@
                             All priorities
                         </option>
 
-                        <% for (IncidentPriority priority
-                                : availablePriorities) { %>
+                        <% for (IncidentPriority priority : availablePriorities) { %>
 
                         <option value="<%= priority.name() %>"
-                                <%= priority.name()
-                                        .equals(
-                                                selectedPriority
-                                        )
+                                <%= priority.name().equals(selectedPriority)
                                         ? "selected"
                                         : "" %>>
-
-                            <%= escapeHtml(
-                                    formatPriority(
-                                            priority
-                                    )
-                            ) %>
-
+                            <%= escapeHtml(formatPriority(priority)) %>
                         </option>
 
                         <% } %>
 
                     </select>
-
                 </div>
 
             </div>
 
             <div class="form-actions">
-
                 <button type="submit"
                         class="button button-primary">
-
                     Apply filters
-
                 </button>
 
                 <a href="<%= contextPath %>/incidents"
                    class="button button-secondary">
-
                     Reset
-
                 </a>
-
             </div>
-
         </form>
-
     </section>
 
     <section class="content-card"
              aria-labelledby="incident-table-title">
 
         <div class="content-card-header">
-
             <h2 id="incident-table-title">
                 Registered incidents
             </h2>
 
             <span>
-
                 Showing
                 <%= displayedIncidents %>
                 of
                 <%= totalIncidents %>
                 incident(s)
-
             </span>
-
         </div>
 
         <% if (incidents.isEmpty()) { %>
 
         <div class="empty-state">
-
             <h3>
                 No incidents found
             </h3>
@@ -720,101 +528,59 @@
 
             <a href="<%= contextPath %>/incidents"
                class="button button-secondary">
-
                 Clear filters
-
             </a>
 
             <% if (administrator) { %>
 
             <a href="<%= contextPath %>/admin/incidents/create"
                class="button button-primary">
-
                 Create incident
-
             </a>
 
             <% } %>
-
         </div>
 
         <% } else { %>
 
         <div class="table-container">
-
             <table class="data-table">
-
                 <thead>
-
                 <tr>
-
-                    <th scope="col">
-                        ID
-                    </th>
-
-                    <th scope="col">
-                        Incident
-                    </th>
-
-                    <th scope="col">
-                        Priority
-                    </th>
-
-                    <th scope="col">
-                        Status
-                    </th>
-
-                    <th scope="col">
-                        Created
-                    </th>
-
-                    <th scope="col">
-                        Actions
-                    </th>
-
+                    <th scope="col">ID</th>
+                    <th scope="col">Incident</th>
+                    <th scope="col">Priority</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Created</th>
+                    <th scope="col">Actions</th>
                 </tr>
-
                 </thead>
 
                 <tbody>
 
-                <% for (Incident incident
-                        : incidents) { %>
+                <% for (Incident incident : incidents) { %>
 
                 <tr>
-
                     <td>
-
                         #<%= incident.getId() %>
-
                     </td>
 
                     <td>
-
                         <strong>
-
-                            <%= escapeHtml(
-                                    incident.getTitle()
-                            ) %>
-
+                            <%= escapeHtml(incident.getTitle()) %>
                         </strong>
 
                         <div class="table-secondary-text">
-
                             <%= escapeHtml(
                                     shortenText(
-                                            incident
-                                                    .getDescription(),
+                                            incident.getDescription(),
                                             120
                                     )
                             ) %>
-
                         </div>
-
                     </td>
 
                     <td>
-
                         <span class="priority-badge
                                 <%= getPriorityCssClass(
                                         incident.getPriority()
@@ -825,13 +591,10 @@
                                             incident.getPriority()
                                     )
                             ) %>
-
                         </span>
-
                     </td>
 
                     <td>
-
                         <span class="status-badge
                                 <%= getStatusCssClass(
                                         incident.getStatus()
@@ -842,38 +605,25 @@
                                             incident.getStatus()
                                     )
                             ) %>
-
                         </span>
-
                     </td>
 
                     <td>
-
-                        <%= escapeHtml(
-                                incident.getCreatedAt()
-                        ) %>
-
+                        <%= escapeHtml(incident.getCreatedAt()) %>
                     </td>
 
                     <td>
-
                         <a href="<%= contextPath %>/incidents/details?id=<%= incident.getId() %>"
                            class="button button-small button-secondary">
-
                             Details
-
                         </a>
-
                     </td>
-
                 </tr>
 
                 <% } %>
 
                 </tbody>
-
             </table>
-
         </div>
 
         <% } %>

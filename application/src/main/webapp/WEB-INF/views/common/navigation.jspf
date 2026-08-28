@@ -1,5 +1,4 @@
 <div class="page-navigation">
-
     <a href="<%= request.getContextPath() %>/dashboard"
        class="navigation-home">
         Home
@@ -10,5 +9,4 @@
             onclick="window.history.back();">
         Back
     </button>
-
 </div>

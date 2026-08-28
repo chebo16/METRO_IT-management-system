@@ -5,12 +5,8 @@
          import="jakarta.servlet.http.HttpServletResponse" %>
 
 <%
-    response.setStatus(
-            HttpServletResponse.SC_FORBIDDEN
-    );
-
-    String contextPath =
-            request.getContextPath();
+    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+    String contextPath = request.getContextPath();
 %>
 
 <!DOCTYPE html>
@@ -50,12 +46,9 @@
         </p>
 
         <div class="error-actions">
-
             <a href="<%= contextPath %>/"
                class="button button-primary">
-
                 Return to dashboard
-
             </a>
 
             <form method="post"
@@ -64,13 +57,9 @@
 
                 <button type="submit"
                         class="button button-secondary">
-
                     Sign out
-
                 </button>
-
             </form>
-
         </div>
 
         <p class="error-help">

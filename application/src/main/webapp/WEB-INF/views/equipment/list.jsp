@@ -11,10 +11,7 @@
 <%@ page import="com.chebo16.metroit.web.session.SessionUser" %>
 
 <%!
-    private static String escapeHtml(
-            Object value
-    ) {
-
+    private static String escapeHtml(Object value) {
         if (value == null) {
             return "";
         }
@@ -27,37 +24,24 @@
                 .replace("'", "&#39;");
     }
 
-    private static long getLongAttribute(
-            Object attribute
-    ) {
-
+    private static long getLongAttribute(Object attribute) {
         if (attribute instanceof Number) {
-
-            Number number =
-                    (Number) attribute;
-
+            Number number = (Number) attribute;
             return number.longValue();
         }
 
         return 0L;
     }
 
-    private static String formatStatus(
-            EquipmentStatus status
-    ) {
-
+    private static String formatStatus(EquipmentStatus status) {
         if (status == null) {
             return "";
         }
 
-        return status.name()
-                .replace('_', ' ');
+        return status.name().replace('_', ' ');
     }
 
-    private static String getStatusCssClass(
-            EquipmentStatus status
-    ) {
-
+    private static String getStatusCssClass(EquipmentStatus status) {
         if (status == null) {
             return "status-inactive";
         }
@@ -83,139 +67,81 @@
 %>
 
 <%
-    String contextPath =
-            request.getContextPath();
+    String contextPath = request.getContextPath();
 
-    Object authenticatedUserAttribute =
-            session.getAttribute(
-                    SessionConstants.AUTHENTICATED_USER
-            );
+    Object authenticatedUserAttribute = session.getAttribute(
+            SessionConstants.AUTHENTICATED_USER
+    );
 
     SessionUser sessionUser = null;
 
-    if (authenticatedUserAttribute
-            instanceof SessionUser) {
-
-        sessionUser =
-                (SessionUser)
-                        authenticatedUserAttribute;
+    if (authenticatedUserAttribute instanceof SessionUser) {
+        sessionUser = (SessionUser) authenticatedUserAttribute;
     }
 
     boolean administrator =
-            sessionUser != null
-                    && sessionUser.isAdmin();
+            sessionUser != null && sessionUser.isAdmin();
 
     List<Equipment> equipmentList =
             Collections.emptyList();
 
     Object equipmentAttribute =
-            request.getAttribute(
-                    "equipment"
-            );
+            request.getAttribute("equipment");
 
-    if (equipmentAttribute
-            instanceof List) {
-
+    if (equipmentAttribute instanceof List) {
         equipmentList =
-                (List<Equipment>)
-                        equipmentAttribute;
+                (List<Equipment>) equipmentAttribute;
     }
 
     long totalEquipment =
-            getLongAttribute(
-                    request.getAttribute(
-                            "totalEquipment"
-                    )
-            );
+            getLongAttribute(request.getAttribute("totalEquipment"));
 
     long displayedEquipment =
-            getLongAttribute(
-                    request.getAttribute(
-                            "displayedEquipment"
-                    )
-            );
+            getLongAttribute(request.getAttribute("displayedEquipment"));
 
     long activeEquipment =
-            getLongAttribute(
-                    request.getAttribute(
-                            "activeEquipment"
-                    )
-            );
+            getLongAttribute(request.getAttribute("activeEquipment"));
 
     long inRepairEquipment =
-            getLongAttribute(
-                    request.getAttribute(
-                            "inRepairEquipment"
-                    )
-            );
+            getLongAttribute(request.getAttribute("inRepairEquipment"));
 
     long inactiveEquipment =
-            getLongAttribute(
-                    request.getAttribute(
-                            "inactiveEquipment"
-                    )
-            );
+            getLongAttribute(request.getAttribute("inactiveEquipment"));
 
     long decommissionedEquipment =
             getLongAttribute(
-                    request.getAttribute(
-                            "decommissionedEquipment"
-                    )
+                    request.getAttribute("decommissionedEquipment")
             );
 
     String searchQuery =
-            escapeHtml(
-                    request.getAttribute(
-                            "searchQuery"
-                    )
-            );
+            escapeHtml(request.getAttribute("searchQuery"));
 
     String selectedStatus =
-            escapeHtml(
-                    request.getAttribute(
-                            "selectedStatus"
-                    )
-            );
+            escapeHtml(request.getAttribute("selectedStatus"));
 
     EquipmentStatus[] availableStatuses =
             EquipmentStatus.values();
 
     Object statusesAttribute =
-            request.getAttribute(
-                    "availableStatuses"
-            );
+            request.getAttribute("availableStatuses");
 
-    if (statusesAttribute
-            instanceof EquipmentStatus[]) {
-
+    if (statusesAttribute instanceof EquipmentStatus[]) {
         availableStatuses =
-                (EquipmentStatus[])
-                        statusesAttribute;
+                (EquipmentStatus[]) statusesAttribute;
     }
 
     String successParameter =
-            request.getParameter(
-                    "success"
-            );
+            request.getParameter("success");
 
     String successMessage = "";
 
     if ("created".equals(successParameter)) {
-
         successMessage =
                 "Equipment was created successfully.";
-
-    } else if ("updated".equals(
-            successParameter
-    )) {
-
+    } else if ("updated".equals(successParameter)) {
         successMessage =
                 "Equipment was updated successfully.";
-
-    } else if ("status-updated".equals(
-            successParameter
-    )) {
-
+    } else if ("status-updated".equals(successParameter)) {
         successMessage =
                 "Equipment status was updated successfully.";
     }
@@ -225,57 +151,38 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>
-        Equipment | METRO IT Management
-    </title>
+    <title>Equipment | METRO IT Management</title>
 
     <link rel="stylesheet"
           href="<%= contextPath %>/css/style.css">
-
 </head>
 
 <body>
 
 <header>
-
     <h1>
-
         <a href="<%= contextPath %>/">
             METRO IT Management
         </a>
-
     </h1>
 
     <% if (sessionUser != null) { %>
 
     <p>
-
         Logged in as:
-
-        <strong>
-            <%= escapeHtml(
-                    sessionUser.getFullName()
-            ) %>
-        </strong>
-
+        <strong><%= escapeHtml(sessionUser.getFullName()) %></strong>
         -
-
-        <%= escapeHtml(
-                sessionUser.getRole()
-        ) %>
-
+        <%= escapeHtml(sessionUser.getRole()) %>
     </p>
 
     <% } %>
 
     <nav>
-
         <a href="<%= contextPath %>/">
             Dashboard
         </a>
@@ -314,15 +221,10 @@
 
             <button type="submit"
                     class="button button-secondary">
-
                 Sign out
-
             </button>
-
         </form>
-
     </nav>
-
 </header>
 
 <hr>
@@ -332,9 +234,7 @@
     <%@ include file="/WEB-INF/views/common/navigation.jspf" %>
 
     <div class="page-header">
-
         <div>
-
             <% if (administrator) { %>
 
             <h2>
@@ -358,31 +258,23 @@
             </p>
 
             <% } %>
-
         </div>
 
         <% if (administrator) { %>
 
         <a href="<%= contextPath %>/admin/equipment/create"
            class="button button-primary">
-
             Add equipment
-
         </a>
 
         <% } %>
-
     </div>
 
     <% if (!successMessage.isEmpty()) { %>
 
     <div class="success-message"
          role="status">
-
-        <%= escapeHtml(
-                successMessage
-        ) %>
-
+        <%= escapeHtml(successMessage) %>
     </div>
 
     <% } %>
@@ -391,7 +283,6 @@
              aria-label="Equipment statistics">
 
         <article class="statistics-card">
-
             <span class="statistics-label">
                 Total equipment
             </span>
@@ -399,11 +290,9 @@
             <strong class="statistics-value">
                 <%= totalEquipment %>
             </strong>
-
         </article>
 
         <article class="statistics-card">
-
             <span class="statistics-label">
                 Active
             </span>
@@ -411,11 +300,9 @@
             <strong class="statistics-value">
                 <%= activeEquipment %>
             </strong>
-
         </article>
 
         <article class="statistics-card">
-
             <span class="statistics-label">
                 In repair
             </span>
@@ -423,11 +310,9 @@
             <strong class="statistics-value">
                 <%= inRepairEquipment %>
             </strong>
-
         </article>
 
         <article class="statistics-card">
-
             <span class="statistics-label">
                 Inactive
             </span>
@@ -435,11 +320,9 @@
             <strong class="statistics-value">
                 <%= inactiveEquipment %>
             </strong>
-
         </article>
 
         <article class="statistics-card">
-
             <span class="statistics-label">
                 Decommissioned
             </span>
@@ -447,17 +330,13 @@
             <strong class="statistics-value">
                 <%= decommissionedEquipment %>
             </strong>
-
         </article>
 
     </section>
 
     <section class="content-card">
-
         <div class="content-card-header">
-
             <div>
-
                 <h2>
                     Search and filters
                 </h2>
@@ -467,9 +346,7 @@
                     name, type, manufacturer, model,
                     serial number or IP address.
                 </span>
-
             </div>
-
         </div>
 
         <form method="get"
@@ -479,7 +356,6 @@
             <div class="filter-grid">
 
                 <div class="form-group">
-
                     <label for="q">
                         Search
                     </label>
@@ -490,11 +366,9 @@
                            value="<%= searchQuery %>"
                            placeholder="Inventory number, name, model..."
                            maxlength="150">
-
                 </div>
 
                 <div class="form-group">
-
                     <label for="status">
                         Status
                     </label>
@@ -506,80 +380,56 @@
                             All statuses
                         </option>
 
-                        <% for (EquipmentStatus status
-                                : availableStatuses) { %>
+                        <% for (EquipmentStatus status : availableStatuses) { %>
 
                         <option value="<%= status.name() %>"
-                                <%= status.name()
-                                        .equals(
-                                                selectedStatus
-                                        )
+                                <%= status.name().equals(selectedStatus)
                                         ? "selected"
                                         : "" %>>
-
-                            <%= escapeHtml(
-                                    formatStatus(
-                                            status
-                                    )
-                            ) %>
-
+                            <%= escapeHtml(formatStatus(status)) %>
                         </option>
 
                         <% } %>
 
                     </select>
-
                 </div>
 
             </div>
 
             <div class="form-actions">
-
                 <button type="submit"
                         class="button button-primary">
-
                     Apply filters
-
                 </button>
 
                 <a href="<%= contextPath %>/equipment"
                    class="button button-secondary">
-
                     Reset
-
                 </a>
-
             </div>
-
         </form>
-
     </section>
 
     <section class="content-card"
              aria-labelledby="equipment-table-title">
 
         <div class="content-card-header">
-
             <h2 id="equipment-table-title">
                 Registered equipment
             </h2>
 
             <span>
-
                 Showing
                 <%= displayedEquipment %>
                 of
                 <%= totalEquipment %>
                 item(s)
-
             </span>
-
         </div>
 
         <% if (equipmentList.isEmpty()) { %>
 
         <div class="empty-state">
-
             <h3>
                 No equipment found
             </h3>
@@ -591,173 +441,97 @@
 
             <a href="<%= contextPath %>/equipment"
                class="button button-secondary">
-
                 Clear filters
-
             </a>
 
             <% if (administrator) { %>
 
             <a href="<%= contextPath %>/admin/equipment/create"
                class="button button-primary">
-
                 Add equipment
-
             </a>
 
             <% } %>
-
         </div>
 
         <% } else { %>
 
         <div class="table-container">
-
             <table class="data-table">
-
                 <thead>
-
                 <tr>
-
-                    <th scope="col">
-                        Inventory number
-                    </th>
-
-                    <th scope="col">
-                        Equipment
-                    </th>
-
-                    <th scope="col">
-                        Type
-                    </th>
-
-                    <th scope="col">
-                        Manufacturer / Model
-                    </th>
-
-                    <th scope="col">
-                        Serial number
-                    </th>
-
-                    <th scope="col">
-                        IP address
-                    </th>
-
-                    <th scope="col">
-                        Status
-                    </th>
-
-                    <th scope="col">
-                        Created
-                    </th>
+                    <th scope="col">Inventory number</th>
+                    <th scope="col">Equipment</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Manufacturer / Model</th>
+                    <th scope="col">Serial number</th>
+                    <th scope="col">IP address</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Created</th>
 
                     <% if (administrator) { %>
 
-                    <th scope="col">
-                        Actions
-                    </th>
+                    <th scope="col">Actions</th>
 
                     <% } %>
-
                 </tr>
-
                 </thead>
 
                 <tbody>
 
-                <% for (Equipment equipment
-                        : equipmentList) { %>
+                <% for (Equipment equipment : equipmentList) { %>
 
                 <tr>
-
                     <td>
-
                         <strong>
-
                             <%= escapeHtml(
-                                    equipment
-                                            .getInventoryNumber()
+                                    equipment.getInventoryNumber()
                             ) %>
-
                         </strong>
-
                     </td>
 
                     <td>
-
                         <strong>
-
-                            <%= escapeHtml(
-                                    equipment.getName()
-                            ) %>
-
+                            <%= escapeHtml(equipment.getName()) %>
                         </strong>
 
                         <% if (equipment.getNotes() != null
-                                && !equipment
-                                .getNotes()
-                                .isBlank()) { %>
+                                && !equipment.getNotes().isBlank()) { %>
 
                         <div class="table-secondary-text">
-
-                            <%= escapeHtml(
-                                    equipment.getNotes()
-                            ) %>
-
+                            <%= escapeHtml(equipment.getNotes()) %>
                         </div>
 
                         <% } %>
-
                     </td>
 
                     <td>
-
-                        <%= escapeHtml(
-                                equipment.getType()
-                        ) %>
-
+                        <%= escapeHtml(equipment.getType()) %>
                     </td>
 
                     <td>
-
                         <div>
-
                             <%= escapeHtml(
-                                    equipment
-                                            .getManufacturer()
+                                    equipment.getManufacturer()
                             ) %>
-
                         </div>
 
                         <div class="table-secondary-text">
-
-                            <%= escapeHtml(
-                                    equipment.getModel()
-                            ) %>
-
+                            <%= escapeHtml(equipment.getModel()) %>
                         </div>
-
                     </td>
 
                     <td>
-
                         <%= escapeHtml(
-                                equipment
-                                        .getSerialNumber()
+                                equipment.getSerialNumber()
                         ) %>
-
                     </td>
 
                     <td>
-
-                        <%= escapeHtml(
-                                equipment.getIpAddress()
-                        ) %>
-
+                        <%= escapeHtml(equipment.getIpAddress()) %>
                     </td>
 
                     <td>
-
                         <span class="status-badge
                                 <%= getStatusCssClass(
                                         equipment.getStatus()
@@ -768,30 +542,21 @@
                                             equipment.getStatus()
                                     )
                             ) %>
-
                         </span>
-
                     </td>
 
                     <td>
-
-                        <%= escapeHtml(
-                                equipment.getCreatedAt()
-                        ) %>
-
+                        <%= escapeHtml(equipment.getCreatedAt()) %>
                     </td>
 
                     <% if (administrator) { %>
 
                     <td>
-
                         <div class="table-actions">
 
                             <a href="<%= contextPath %>/admin/equipment/edit?id=<%= equipment.getId() %>"
                                class="button button-small button-secondary">
-
                                 Edit
-
                             </a>
 
                             <form method="post"
@@ -804,29 +569,21 @@
 
                                 <label class="visually-hidden"
                                        for="status-<%= equipment.getId() %>">
-
                                     Equipment status
-
                                 </label>
 
                                 <select id="status-<%= equipment.getId() %>"
                                         name="status">
 
-                                    <% for (EquipmentStatus status
-                                            : availableStatuses) { %>
+                                    <% for (EquipmentStatus status : availableStatuses) { %>
 
                                     <option value="<%= status.name() %>"
-                                            <%= status
-                                                    == equipment.getStatus()
+                                            <%= status == equipment.getStatus()
                                                     ? "selected"
                                                     : "" %>>
-
                                         <%= escapeHtml(
-                                                formatStatus(
-                                                        status
-                                                )
+                                                formatStatus(status)
                                         ) %>
-
                                     </option>
 
                                     <% } %>
@@ -835,15 +592,11 @@
 
                                 <button type="submit"
                                         class="button button-small button-primary">
-
                                     Update status
-
                                 </button>
-
                             </form>
 
                         </div>
-
                     </td>
 
                     <% } %>
@@ -853,9 +606,7 @@
                 <% } %>
 
                 </tbody>
-
             </table>
-
         </div>
 
         <% } %>

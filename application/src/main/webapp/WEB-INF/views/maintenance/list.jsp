@@ -11,10 +11,7 @@
 <%@ page import="com.chebo16.metroit.web.session.SessionUser" %>
 
 <%!
-    private static String escapeHtml(
-            Object value
-    ) {
-
+    private static String escapeHtml(Object value) {
         if (value == null) {
             return "";
         }
@@ -27,16 +24,12 @@
                 .replace("'", "&#39;");
     }
 
-    private static String displayValue(
-            Object value
-    ) {
-
+    private static String displayValue(Object value) {
         if (value == null) {
             return "Not available";
         }
 
-        String text =
-                value.toString().trim();
+        String text = value.toString().trim();
 
         if (text.isEmpty()) {
             return "Not available";
@@ -45,24 +38,28 @@
         return escapeHtml(text);
     }
 
-    private static String formatEnum(
-            Object value
-    ) {
-
+    private static String formatEnum(Object value) {
         if (value == null) {
             return "";
         }
 
         return escapeHtml(
-                value.toString()
-                        .replace('_', ' ')
+                value.toString().replace('_', ' ')
         );
+    }
+
+    private static long getLongAttribute(Object attribute) {
+        if (attribute instanceof Number) {
+            Number number = (Number) attribute;
+            return number.longValue();
+        }
+
+        return 0L;
     }
 
     private static String maintenanceResultClass(
             MaintenanceResult result
     ) {
-
         if (result == null) {
             return "maintenance-result-unknown";
         }
@@ -84,221 +81,116 @@
 %>
 
 <%
-    String contextPath =
-            request.getContextPath();
+    String contextPath = request.getContextPath();
+
+    Object authenticatedUserAttribute = session.getAttribute(
+            SessionConstants.AUTHENTICATED_USER
+    );
 
     SessionUser sessionUser = null;
 
-    Object authenticatedUserAttribute =
-            session.getAttribute(
-                    SessionConstants.AUTHENTICATED_USER
-            );
-
-    if (authenticatedUserAttribute
-            instanceof SessionUser) {
-
-        sessionUser =
-                (SessionUser)
-                        authenticatedUserAttribute;
+    if (authenticatedUserAttribute instanceof SessionUser) {
+        sessionUser = (SessionUser) authenticatedUserAttribute;
     }
 
     boolean administrator =
-            sessionUser != null
-                    && sessionUser.isAdmin();
+            sessionUser != null && sessionUser.isAdmin();
 
     List<MaintenanceRecord> records =
             Collections.emptyList();
 
     Object recordsAttribute =
-            request.getAttribute(
-                    "records"
-            );
+            request.getAttribute("records");
 
-    if (recordsAttribute
-            instanceof List) {
-
+    if (recordsAttribute instanceof List) {
         records =
-                (List<MaintenanceRecord>)
-                        recordsAttribute;
+                (List<MaintenanceRecord>) recordsAttribute;
     }
 
-    long totalRecords = 0;
-    long successfulRecords = 0;
-    long partiallyCompletedRecords = 0;
-    long failedRecords = 0;
+    long totalRecords =
+            getLongAttribute(request.getAttribute("totalRecords"));
 
-    Object totalRecordsAttribute =
-            request.getAttribute(
-                    "totalRecords"
+    long successfulRecords =
+            getLongAttribute(request.getAttribute("successfulRecords"));
+
+    long partiallyCompletedRecords =
+            getLongAttribute(
+                    request.getAttribute("partiallyCompletedRecords")
             );
 
-    if (totalRecordsAttribute
-            instanceof Number) {
-
-        Number number =
-                (Number)
-                        totalRecordsAttribute;
-
-        totalRecords =
-                number.longValue();
-    }
-
-    Object successfulRecordsAttribute =
-            request.getAttribute(
-                    "successfulRecords"
-            );
-
-    if (successfulRecordsAttribute
-            instanceof Number) {
-
-        Number number =
-                (Number)
-                        successfulRecordsAttribute;
-
-        successfulRecords =
-                number.longValue();
-    }
-
-    Object partiallyCompletedRecordsAttribute =
-            request.getAttribute(
-                    "partiallyCompletedRecords"
-            );
-
-    if (partiallyCompletedRecordsAttribute
-            instanceof Number) {
-
-        Number number =
-                (Number)
-                        partiallyCompletedRecordsAttribute;
-
-        partiallyCompletedRecords =
-                number.longValue();
-    }
-
-    Object failedRecordsAttribute =
-            request.getAttribute(
-                    "failedRecords"
-            );
-
-    if (failedRecordsAttribute
-            instanceof Number) {
-
-        Number number =
-                (Number)
-                        failedRecordsAttribute;
-
-        failedRecords =
-                number.longValue();
-    }
+    long failedRecords =
+            getLongAttribute(request.getAttribute("failedRecords"));
 
     String search = "";
 
     Object searchAttribute =
-            request.getAttribute(
-                    "search"
-            );
+            request.getAttribute("search");
 
-    if (searchAttribute
-            instanceof String) {
-
-        search =
-                (String)
-                        searchAttribute;
+    if (searchAttribute instanceof String) {
+        search = (String) searchAttribute;
     }
 
     String selectedResult = "";
 
     Object selectedResultAttribute =
-            request.getAttribute(
-                    "selectedResult"
-            );
+            request.getAttribute("selectedResult");
 
-    if (selectedResultAttribute
-            instanceof String) {
-
+    if (selectedResultAttribute instanceof String) {
         selectedResult =
-                (String)
-                        selectedResultAttribute;
+                (String) selectedResultAttribute;
     }
 
     MaintenanceResult[] results =
             MaintenanceResult.values();
 
     Object resultsAttribute =
-            request.getAttribute(
-                    "results"
-            );
+            request.getAttribute("results");
 
-    if (resultsAttribute
-            instanceof MaintenanceResult[]) {
-
+    if (resultsAttribute instanceof MaintenanceResult[]) {
         results =
-                (MaintenanceResult[])
-                        resultsAttribute;
+                (MaintenanceResult[]) resultsAttribute;
     }
 
     String success =
-            request.getParameter(
-                    "success"
-            );
+            request.getParameter("success");
 %>
 
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>
-        Maintenance History | METRO IT Management
-    </title>
+    <title>Maintenance History | METRO IT Management</title>
 
     <link rel="stylesheet"
           href="<%= contextPath %>/css/style.css">
-
 </head>
 
 <body>
 
 <header>
-
     <h1>
-
         <a href="<%= contextPath %>/">
             METRO IT Management
         </a>
-
     </h1>
 
     <% if (sessionUser != null) { %>
 
     <p>
-
         Logged in as:
-
-        <strong>
-            <%= escapeHtml(
-                    sessionUser.getFullName()
-            ) %>
-        </strong>
-
+        <strong><%= escapeHtml(sessionUser.getFullName()) %></strong>
         -
-
-        <%= escapeHtml(
-                sessionUser.getRole()
-        ) %>
-
+        <%= escapeHtml(sessionUser.getRole()) %>
     </p>
 
     <% } %>
 
     <nav>
-
         <a href="<%= contextPath %>/">
             Dashboard
         </a>
@@ -337,15 +229,10 @@
 
             <button type="submit"
                     class="button button-secondary">
-
                 Sign out
-
             </button>
-
         </form>
-
     </nav>
-
 </header>
 
 <hr>
@@ -355,9 +242,7 @@
     <%@ include file="/WEB-INF/views/common/navigation.jspf" %>
 
     <div class="page-header">
-
         <div>
-
             <h2>
                 Maintenance history
             </h2>
@@ -376,18 +261,14 @@
             </p>
 
             <% } %>
-
         </div>
-
     </div>
 
     <% if ("created".equals(success)) { %>
 
     <div class="success-message"
          role="status">
-
         Maintenance record was created successfully.
-
     </div>
 
     <% } %>
@@ -396,7 +277,6 @@
              aria-label="Maintenance statistics">
 
         <article class="statistics-card">
-
             <span class="statistics-label">
                 Total records
             </span>
@@ -404,11 +284,9 @@
             <strong class="statistics-value">
                 <%= totalRecords %>
             </strong>
-
         </article>
 
         <article class="statistics-card">
-
             <span class="statistics-label">
                 Successful
             </span>
@@ -416,11 +294,9 @@
             <strong class="statistics-value">
                 <%= successfulRecords %>
             </strong>
-
         </article>
 
         <article class="statistics-card">
-
             <span class="statistics-label">
                 Partially completed
             </span>
@@ -428,11 +304,9 @@
             <strong class="statistics-value">
                 <%= partiallyCompletedRecords %>
             </strong>
-
         </article>
 
         <article class="statistics-card">
-
             <span class="statistics-label">
                 Failed
             </span>
@@ -440,17 +314,13 @@
             <strong class="statistics-value">
                 <%= failedRecords %>
             </strong>
-
         </article>
 
     </section>
 
     <section class="content-card">
-
         <div class="content-card-header">
-
             <div>
-
                 <h2>
                     Search and filters
                 </h2>
@@ -460,9 +330,7 @@
                     description, replaced component
                     or identifier and filter by result.
                 </span>
-
             </div>
-
         </div>
 
         <form method="get"
@@ -472,7 +340,6 @@
             <div class="filter-grid">
 
                 <div class="form-group">
-
                     <label for="search">
                         Search
                     </label>
@@ -483,11 +350,9 @@
                            value="<%= escapeHtml(search) %>"
                            placeholder="Description, component or ID"
                            maxlength="150">
-
                 </div>
 
                 <div class="form-group">
-
                     <label for="result">
                         Result
                     </label>
@@ -499,76 +364,56 @@
                             All results
                         </option>
 
-                        <% for (MaintenanceResult result
-                                : results) { %>
+                        <% for (MaintenanceResult result : results) { %>
 
                         <option value="<%= result.name() %>"
-                                <%= result.name()
-                                        .equalsIgnoreCase(
-                                                selectedResult
-                                        )
+                                <%= result.name().equalsIgnoreCase(selectedResult)
                                         ? "selected"
                                         : "" %>>
-
                             <%= formatEnum(result) %>
-
                         </option>
 
                         <% } %>
 
                     </select>
-
                 </div>
 
             </div>
 
             <div class="form-actions">
-
                 <button type="submit"
                         class="button button-primary">
-
                     Apply filters
-
                 </button>
 
                 <a href="<%= contextPath %>/maintenance"
                    class="button button-secondary">
-
                     Reset
-
                 </a>
-
             </div>
-
         </form>
-
     </section>
 
     <section class="content-card"
              aria-labelledby="maintenance-records-title">
 
         <div class="content-card-header">
-
             <h2 id="maintenance-records-title">
                 Maintenance records
             </h2>
 
             <span>
-
                 Showing
                 <%= records.size() %>
                 of
                 <%= totalRecords %>
                 record(s)
-
             </span>
-
         </div>
 
         <% if (records.isEmpty()) { %>
 
         <div class="empty-state">
-
             <h3>
                 No maintenance records found
             </h3>
@@ -580,74 +425,39 @@
 
             <a href="<%= contextPath %>/maintenance"
                class="button button-secondary">
-
                 Clear filters
-
             </a>
-
         </div>
 
         <% } else { %>
 
         <div class="table-container">
-
             <table class="data-table">
-
                 <thead>
-
                 <tr>
-
-                    <th scope="col">
-                        ID
-                    </th>
-
-                    <th scope="col">
-                        Incident ID
-                    </th>
-
-                    <th scope="col">
-                        Equipment ID
-                    </th>
+                    <th scope="col">ID</th>
+                    <th scope="col">Incident ID</th>
+                    <th scope="col">Equipment ID</th>
 
                     <% if (administrator) { %>
 
-                    <th scope="col">
-                        Technician ID
-                    </th>
+                    <th scope="col">Technician ID</th>
 
                     <% } %>
 
-                    <th scope="col">
-                        Work description
-                    </th>
-
-                    <th scope="col">
-                        Replaced components
-                    </th>
-
-                    <th scope="col">
-                        Result
-                    </th>
-
-                    <th scope="col">
-                        Performed at
-                    </th>
-
-                    <th scope="col">
-                        Actions
-                    </th>
-
+                    <th scope="col">Work description</th>
+                    <th scope="col">Replaced components</th>
+                    <th scope="col">Result</th>
+                    <th scope="col">Performed at</th>
+                    <th scope="col">Actions</th>
                 </tr>
-
                 </thead>
 
                 <tbody>
 
-                <% for (MaintenanceRecord record
-                        : records) { %>
+                <% for (MaintenanceRecord record : records) { %>
 
                 <tr>
-
                     <td>
                         #<%= record.getId() %>
                     </td>
@@ -669,20 +479,14 @@
                     <% } %>
 
                     <td>
-
                         <%= displayValue(
                                 record.getWorkDescription()
                         ) %>
-
                     </td>
 
                     <td>
-
-                        <% if (record.getReplacedComponents()
-                                != null
-                                && !record
-                                .getReplacedComponents()
-                                .isBlank()) { %>
+                        <% if (record.getReplacedComponents() != null
+                                && !record.getReplacedComponents().isBlank()) { %>
 
                         <%= escapeHtml(
                                 record.getReplacedComponents()
@@ -695,50 +499,35 @@
                         </span>
 
                         <% } %>
-
                     </td>
 
                     <td>
-
                         <span class="maintenance-result-badge <%= maintenanceResultClass(
                                 record.getResult()
                         ) %>">
 
-                            <%= formatEnum(
-                                    record.getResult()
-                            ) %>
-
+                            <%= formatEnum(record.getResult()) %>
                         </span>
-
                     </td>
 
                     <td>
-
                         <%= displayValue(
                                 record.getPerformedAt()
                         ) %>
-
                     </td>
 
                     <td>
-
                         <a href="<%= contextPath %>/incidents/details?id=<%= record.getIncidentId() %>"
                            class="button button-small button-secondary">
-
                             Incident details
-
                         </a>
-
                     </td>
-
                 </tr>
 
                 <% } %>
 
                 </tbody>
-
             </table>
-
         </div>
 
         <% } %>

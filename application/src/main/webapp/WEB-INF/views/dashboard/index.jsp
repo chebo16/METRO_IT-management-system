@@ -8,10 +8,7 @@
 <%@ page import="java.util.Locale" %>
 
 <%!
-    private static String escapeHtml(
-            Object value
-    ) {
-
+    private static String escapeHtml(Object value) {
         if (value == null) {
             return "";
         }
@@ -24,197 +21,100 @@
                 .replace("'", "&#39;");
     }
 
-    private static long longValue(
-            Object value
-    ) {
-
+    private static long longValue(Object value) {
         if (value instanceof Number) {
-
-            Number number =
-                    (Number) value;
-
+            Number number = (Number) value;
             return number.longValue();
         }
 
-        return 0;
+        return 0L;
     }
 
-    private static double percentage(
-            long value,
-            long total
-    ) {
-
+    private static double percentage(long value, long total) {
         if (total <= 0) {
             return 0.0;
         }
 
-        return (value * 100.0)
-                / total;
+        return value * 100.0 / total;
     }
 %>
 
 <%
-    String contextPath =
-            request.getContextPath();
+    String contextPath = request.getContextPath();
+
+    Object authenticatedUserAttribute = session.getAttribute(
+            SessionConstants.AUTHENTICATED_USER
+    );
 
     SessionUser sessionUser = null;
 
-    Object authenticatedUserAttribute =
-            session.getAttribute(
-                    SessionConstants.AUTHENTICATED_USER
-            );
-
-    if (authenticatedUserAttribute
-            instanceof SessionUser) {
-
-        sessionUser =
-                (SessionUser)
-                        authenticatedUserAttribute;
+    if (authenticatedUserAttribute instanceof SessionUser) {
+        sessionUser = (SessionUser) authenticatedUserAttribute;
     }
 
     if (sessionUser == null) {
-
-        response.sendRedirect(
-                contextPath + "/login"
-        );
-
+        response.sendRedirect(contextPath + "/login");
         return;
     }
 
-    boolean administrator =
-            sessionUser.isAdmin();
+    boolean administrator = sessionUser.isAdmin();
 
     long totalUsers =
-            longValue(
-                    request.getAttribute(
-                            "totalUsers"
-                    )
-            );
+            longValue(request.getAttribute("totalUsers"));
 
     long activeUsers =
-            longValue(
-                    request.getAttribute(
-                            "activeUsers"
-                    )
-            );
+            longValue(request.getAttribute("activeUsers"));
 
     long administratorUsers =
-            longValue(
-                    request.getAttribute(
-                            "administratorUsers"
-                    )
-            );
+            longValue(request.getAttribute("administratorUsers"));
 
     long technicianUsers =
-            longValue(
-                    request.getAttribute(
-                            "technicianUsers"
-                    )
-            );
+            longValue(request.getAttribute("technicianUsers"));
 
     long totalEquipment =
-            longValue(
-                    request.getAttribute(
-                            "totalEquipment"
-                    )
-            );
+            longValue(request.getAttribute("totalEquipment"));
 
     long activeEquipment =
-            longValue(
-                    request.getAttribute(
-                            "activeEquipment"
-                    )
-            );
+            longValue(request.getAttribute("activeEquipment"));
 
     long equipmentInRepair =
-            longValue(
-                    request.getAttribute(
-                            "equipmentInRepair"
-                    )
-            );
+            longValue(request.getAttribute("equipmentInRepair"));
 
     long inactiveEquipment =
-            longValue(
-                    request.getAttribute(
-                            "inactiveEquipment"
-                    )
-            );
+            longValue(request.getAttribute("inactiveEquipment"));
 
     long decommissionedEquipment =
-            longValue(
-                    request.getAttribute(
-                            "decommissionedEquipment"
-                    )
-            );
+            longValue(request.getAttribute("decommissionedEquipment"));
 
     long totalIncidents =
-            longValue(
-                    request.getAttribute(
-                            "totalIncidents"
-                    )
-            );
+            longValue(request.getAttribute("totalIncidents"));
 
     long newIncidents =
-            longValue(
-                    request.getAttribute(
-                            "newIncidents"
-                    )
-            );
+            longValue(request.getAttribute("newIncidents"));
 
     long inProgressIncidents =
-            longValue(
-                    request.getAttribute(
-                            "inProgressIncidents"
-                    )
-            );
+            longValue(request.getAttribute("inProgressIncidents"));
 
     long resolvedIncidents =
-            longValue(
-                    request.getAttribute(
-                            "resolvedIncidents"
-                    )
-            );
+            longValue(request.getAttribute("resolvedIncidents"));
 
     long closedIncidents =
-            longValue(
-                    request.getAttribute(
-                            "closedIncidents"
-                    )
-            );
+            longValue(request.getAttribute("closedIncidents"));
 
     long totalMaintenanceRecords =
-            longValue(
-                    request.getAttribute(
-                            "totalMaintenanceRecords"
-                    )
-            );
+            longValue(request.getAttribute("totalMaintenanceRecords"));
 
     long successfulMaintenance =
-            longValue(
-                    request.getAttribute(
-                            "successfulMaintenance"
-                    )
-            );
+            longValue(request.getAttribute("successfulMaintenance"));
 
     long partiallyCompletedMaintenance =
-            longValue(
-                    request.getAttribute(
-                            "partiallyCompletedMaintenance"
-                    )
-            );
+            longValue(request.getAttribute("partiallyCompletedMaintenance"));
 
     long failedMaintenance =
-            longValue(
-                    request.getAttribute(
-                            "failedMaintenance"
-                    )
-            );
+            longValue(request.getAttribute("failedMaintenance"));
 
     double incidentClosureRate =
-            percentage(
-                    closedIncidents,
-                    totalIncidents
-            );
+            percentage(closedIncidents, totalIncidents);
 
     double maintenanceSuccessRate =
             percentage(
@@ -238,53 +138,35 @@
 %>
 
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0">
 
-    <title>
-        Dashboard | METRO IT Management
-    </title>
+    <title>Dashboard | METRO IT Management</title>
 
     <link rel="stylesheet"
           href="<%= contextPath %>/css/style.css">
-
 </head>
 
 <body>
 
 <header>
-
     <h1>
         METRO IT Management
     </h1>
 
     <p>
-
         Logged in as:
-
-        <strong>
-            <%= escapeHtml(
-                    sessionUser.getFullName()
-            ) %>
-        </strong>
-
+        <strong><%= escapeHtml(sessionUser.getFullName()) %></strong>
         -
-
-        <%= escapeHtml(
-                sessionUser.getRole()
-        ) %>
-
+        <%= escapeHtml(sessionUser.getRole()) %>
     </p>
 
     <nav>
-
         <a href="<%= contextPath %>/dashboard">
             Dashboard
         </a>
@@ -319,23 +201,17 @@
 
         <form method="post"
               action="<%= contextPath %>/logout">
-
             <button type="submit">
                 Sign out
             </button>
-
         </form>
-
     </nav>
-
 </header>
 
 <main>
 
     <div class="page-header">
-
         <div>
-
             <% if (administrator) { %>
 
             <h1>
@@ -359,20 +235,14 @@
             </p>
 
             <% } %>
-
         </div>
-
     </div>
-
 
     <% if (administrator) { %>
 
     <section class="content-card">
-
         <div class="content-card-header">
-
             <div>
-
                 <h2>
                     Users
                 </h2>
@@ -380,22 +250,16 @@
                 <span>
                     Current user account statistics.
                 </span>
-
             </div>
 
             <a href="<%= contextPath %>/admin/users"
                class="button button-primary">
-
                 Manage users
-
             </a>
-
         </div>
 
         <div class="statistics-grid">
-
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Total users
                 </span>
@@ -403,11 +267,9 @@
                 <strong class="statistics-value">
                     <%= totalUsers %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Active users
                 </span>
@@ -415,11 +277,9 @@
                 <strong class="statistics-value">
                     <%= activeUsers %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Administrators
                 </span>
@@ -427,11 +287,9 @@
                 <strong class="statistics-value">
                     <%= administratorUsers %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Technicians
                 </span>
@@ -439,20 +297,13 @@
                 <strong class="statistics-value">
                     <%= technicianUsers %>
                 </strong>
-
             </div>
-
         </div>
-
     </section>
 
-
     <section class="content-card">
-
         <div class="content-card-header">
-
             <div>
-
                 <h2>
                     Equipment
                 </h2>
@@ -460,22 +311,16 @@
                 <span>
                     Current status of registered IT equipment.
                 </span>
-
             </div>
 
             <a href="<%= contextPath %>/equipment"
                class="button button-primary">
-
                 View equipment
-
             </a>
-
         </div>
 
         <div class="statistics-grid">
-
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Total equipment
                 </span>
@@ -483,11 +328,9 @@
                 <strong class="statistics-value">
                     <%= totalEquipment %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Active
                 </span>
@@ -495,11 +338,9 @@
                 <strong class="statistics-value">
                     <%= activeEquipment %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     In repair
                 </span>
@@ -507,11 +348,9 @@
                 <strong class="statistics-value">
                     <%= equipmentInRepair %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Inactive
                 </span>
@@ -519,11 +358,9 @@
                 <strong class="statistics-value">
                     <%= inactiveEquipment %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Decommissioned
                 </span>
@@ -531,22 +368,15 @@
                 <strong class="statistics-value">
                     <%= decommissionedEquipment %>
                 </strong>
-
             </div>
-
         </div>
-
     </section>
 
     <% } %>
 
-
     <section class="content-card">
-
         <div class="content-card-header">
-
             <div>
-
                 <% if (administrator) { %>
 
                 <h2>
@@ -568,35 +398,27 @@
                 </span>
 
                 <% } %>
-
             </div>
 
             <% if (administrator) { %>
 
             <a href="<%= contextPath %>/incidents"
                class="button button-primary">
-
                 View all incidents
-
             </a>
 
             <% } else { %>
 
             <a href="<%= contextPath %>/incidents/my"
                class="button button-primary">
-
                 View my incidents
-
             </a>
 
             <% } %>
-
         </div>
 
         <div class="statistics-grid">
-
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Total incidents
                 </span>
@@ -604,11 +426,9 @@
                 <strong class="statistics-value">
                     <%= totalIncidents %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     New
                 </span>
@@ -616,11 +436,9 @@
                 <strong class="statistics-value">
                     <%= newIncidents %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     In progress
                 </span>
@@ -628,11 +446,9 @@
                 <strong class="statistics-value">
                     <%= inProgressIncidents %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Resolved
                 </span>
@@ -640,11 +456,9 @@
                 <strong class="statistics-value">
                     <%= resolvedIncidents %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Closed
                 </span>
@@ -652,11 +466,9 @@
                 <strong class="statistics-value">
                     <%= closedIncidents %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Closure rate
                 </span>
@@ -664,20 +476,13 @@
                 <strong class="statistics-value">
                     <%= incidentClosureRateText %>%
                 </strong>
-
             </div>
-
         </div>
-
     </section>
 
-
     <section class="content-card">
-
         <div class="content-card-header">
-
             <div>
-
                 <% if (administrator) { %>
 
                 <h2>
@@ -699,22 +504,16 @@
                 </span>
 
                 <% } %>
-
             </div>
 
             <a href="<%= contextPath %>/maintenance"
                class="button button-primary">
-
                 View maintenance history
-
             </a>
-
         </div>
 
         <div class="statistics-grid">
-
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Total records
                 </span>
@@ -722,11 +521,9 @@
                 <strong class="statistics-value">
                     <%= totalMaintenanceRecords %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Successful
                 </span>
@@ -734,11 +531,9 @@
                 <strong class="statistics-value">
                     <%= successfulMaintenance %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Partially completed
                 </span>
@@ -746,11 +541,9 @@
                 <strong class="statistics-value">
                     <%= partiallyCompletedMaintenance %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Failed
                 </span>
@@ -758,11 +551,9 @@
                 <strong class="statistics-value">
                     <%= failedMaintenance %>
                 </strong>
-
             </div>
 
             <div class="statistics-card">
-
                 <span class="statistics-label">
                     Success rate
                 </span>
@@ -770,20 +561,13 @@
                 <strong class="statistics-value">
                     <%= maintenanceSuccessRateText %>%
                 </strong>
-
             </div>
-
         </div>
-
     </section>
 
-
     <section class="content-card">
-
         <div class="content-card-header">
-
             <div>
-
                 <h2>
                     Quick actions
                 </h2>
@@ -791,9 +575,7 @@
                 <span>
                     Frequently used system actions.
                 </span>
-
             </div>
-
         </div>
 
         <div class="actions">
@@ -837,7 +619,6 @@
             <% } %>
 
         </div>
-
     </section>
 
 </main>
